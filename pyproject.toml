@@ -1,0 +1,61 @@
+[project]
+name = "mcp-content-pipeline"
+version = "0.1.0"
+description = "YouTube video analysis and content generation pipeline exposed as MCP tools"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Berkay Yildirim" }]
+keywords = ["mcp", "youtube", "content", "analysis", "claude"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "mcp[cli]",
+    "anthropic",
+    "youtube-transcript-api",
+    "google-api-python-client",
+    "pygithub",
+    "pydantic>=2.0",
+    "pydantic-settings",
+    "python-slugify",
+]
+
+[project.scripts]
+mcp-content-pipeline = "mcp_content_pipeline.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_content_pipeline"]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "ruff",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/mcp_content_pipeline/services/claude_client.py" = ["E501"]
+"tests/*" = ["E501"]
