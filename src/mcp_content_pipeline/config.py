@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     github_output_dir: str = "content/videos"
     claude_model: str = "claude-sonnet-4-20250514"
     max_transcript_tokens: int = 100000
+    youtube_cookies_file: str | None = None
 
     model_config = SettingsConfigDict(env_prefix="MCP_CP_")
 

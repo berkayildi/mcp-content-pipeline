@@ -8,6 +8,7 @@ import pytest
 from youtube_transcript_api._errors import NoTranscriptFound, YouTubeTranscriptApiException
 
 from mcp_content_pipeline.services.transcript import (
+    _build_ytt_api,
     fetch_transcript,
     fetch_video_metadata,
     parse_video_id,
@@ -168,6 +169,59 @@ class TestFetchTranscriptFallbackChain:
             result = await fetch_transcript("test_id")
             assert result == "Manual transcript translated"
             mock_manual.translate.assert_called_once_with("en")
+
+
+class TestBuildYttApi:
+    def test_without_cookies(self):
+        with patch("mcp_content_pipeline.services.transcript.YouTubeTranscriptApi") as MockApi:
+            _build_ytt_api(None)
+            MockApi.assert_called_once_with()
+
+    def test_with_cookies_file(self, tmp_path):
+        # Create a Netscape-format cookies file
+        cookies_file = tmp_path / "cookies.txt"
+        cookies_file.write_text(
+            "# Netscape HTTP Cookie File\n"
+            ".youtube.com\tTRUE\t/\tFALSE\t9999999999\tSID\tabc123\n"
+        )
+
+        with patch("mcp_content_pipeline.services.transcript.YouTubeTranscriptApi") as MockApi:
+            _build_ytt_api(str(cookies_file))
+            MockApi.assert_called_once()
+            call_kwargs = MockApi.call_args.kwargs
+            assert "http_client" in call_kwargs
+            session = call_kwargs["http_client"]
+            assert len(session.cookies) > 0
+
+    def test_with_missing_cookies_file_raises(self):
+        with pytest.raises(OSError):
+            _build_ytt_api("/nonexistent/cookies.txt")
+
+
+class TestFetchTranscriptWithCookies:
+    @pytest.mark.asyncio
+    async def test_cookies_file_passed_to_builder(self):
+        mock_ytt = MagicMock()
+        mock_ytt.fetch.return_value = MagicMock()
+
+        with patch("mcp_content_pipeline.services.transcript._build_ytt_api", return_value=mock_ytt) as mock_build, \
+             patch("mcp_content_pipeline.services.transcript.TextFormatter") as MockFormatter:
+            MockFormatter.return_value.format_transcript.return_value = "transcript text"
+
+            await fetch_transcript("dQw4w9WgXcQ", cookies_file="/path/to/cookies.txt")
+            mock_build.assert_called_once_with("/path/to/cookies.txt")
+
+    @pytest.mark.asyncio
+    async def test_no_cookies_file_by_default(self):
+        mock_ytt = MagicMock()
+        mock_ytt.fetch.return_value = MagicMock()
+
+        with patch("mcp_content_pipeline.services.transcript._build_ytt_api", return_value=mock_ytt) as mock_build, \
+             patch("mcp_content_pipeline.services.transcript.TextFormatter") as MockFormatter:
+            MockFormatter.return_value.format_transcript.return_value = "transcript text"
+
+            await fetch_transcript("dQw4w9WgXcQ")
+            mock_build.assert_called_once_with(None)
 
 
 class TestFetchVideoMetadata:

@@ -19,7 +19,9 @@ async def analyse_video(
 ) -> VideoAnalysis:
     """Analyse a single YouTube video."""
     video_id = parse_video_id(url)
-    transcript = await fetch_transcript(video_id, settings.max_transcript_tokens)
+    transcript = await fetch_transcript(
+        video_id, settings.max_transcript_tokens, settings.youtube_cookies_file
+    )
     metadata = await fetch_video_metadata(video_id)
 
     analysis = await analyse_transcript(

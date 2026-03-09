@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import http.cookiejar
 import re
 
 import httpx
+import requests
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import (
     NoTranscriptFound,
@@ -13,6 +15,17 @@ from youtube_transcript_api._errors import (
 from youtube_transcript_api.formatters import TextFormatter
 
 HTTP_TIMEOUT = 30.0
+
+
+def _build_ytt_api(cookies_file: str | None = None) -> YouTubeTranscriptApi:
+    """Build a YouTubeTranscriptApi instance, optionally with cookies."""
+    if cookies_file is None:
+        return YouTubeTranscriptApi()
+    cookie_jar = http.cookiejar.MozillaCookieJar(cookies_file)
+    cookie_jar.load()
+    session = requests.Session()
+    session.cookies = cookie_jar
+    return YouTubeTranscriptApi(http_client=session)
 
 
 def parse_video_id(url: str) -> str:
@@ -28,12 +41,14 @@ def parse_video_id(url: str) -> str:
     raise ValueError(f"Could not parse video ID from URL: {url}")
 
 
-async def fetch_transcript(video_id: str, max_tokens: int = 100000) -> str:
+async def fetch_transcript(
+    video_id: str, max_tokens: int = 100000, cookies_file: str | None = None
+) -> str:
     """Fetch transcript for a YouTube video.
 
     Tries English first, then falls back to auto-generated captions.
     """
-    ytt_api = YouTubeTranscriptApi()
+    ytt_api = _build_ytt_api(cookies_file)
     try:
         # Step 1: Try fetching English transcript directly
         transcript = ytt_api.fetch(video_id, languages=["en", "en-US", "en-GB"])

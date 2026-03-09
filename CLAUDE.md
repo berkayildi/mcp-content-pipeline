@@ -22,6 +22,7 @@ uv run mcp-content-pipeline
 All prefixed with `MCP_CP_`:
 - `MCP_CP_ANTHROPIC_API_KEY` — required
 - `MCP_CP_YOUTUBE_API_KEY` — optional (only for list_channel_videos)
+- `MCP_CP_YOUTUBE_COOKIES_FILE` — optional, path to Netscape-format cookies file to bypass YouTube IP blocks
 - `MCP_CP_GITHUB_TOKEN` — required for sync_to_github
 - `MCP_CP_GITHUB_REPO` — format: "owner/repo"
 - `MCP_CP_CLAUDE_MODEL` — default: claude-sonnet-4-20250514
