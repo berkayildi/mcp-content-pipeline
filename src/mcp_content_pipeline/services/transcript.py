@@ -35,29 +35,22 @@ async def fetch_transcript(video_id: str, max_tokens: int = 100000) -> str:
     """
     ytt_api = YouTubeTranscriptApi()
     try:
-        transcript = ytt_api.fetch(video_id, languages=["en"])
+        # Step 1: Try fetching English transcript directly
+        transcript = ytt_api.fetch(video_id, languages=["en", "en-US", "en-GB"])
     except YouTubeTranscriptApiException:
+        transcript_list = ytt_api.list(video_id)
         try:
-            transcript = ytt_api.fetch(video_id, languages=["en-US", "en-GB"])
-        except YouTubeTranscriptApiException:
-            transcript_list = ytt_api.list(video_id)
-            try:
-                # Try English transcript from the list
-                transcript_obj = transcript_list.find_transcript(["en"])
-                transcript = transcript_obj.fetch()
-            except NoTranscriptFound:
-                try:
-                    # Try generated transcript in common languages, translate to English
-                    transcript_obj = transcript_list.find_generated_transcript(
-                        ["tr", "es", "fr", "de", "pt", "ja", "ko", "ar", "hi", "zh-Hans"]
-                    )
-                    transcript = transcript_obj.translate("en").fetch()
-                except NoTranscriptFound:
-                    # Last resort: any manually created transcript, translate to English
-                    transcript_obj = transcript_list.find_manually_created_transcript(
-                        ["tr", "es", "fr", "de", "pt", "ja", "ko", "ar", "hi", "zh-Hans"]
-                    )
-                    transcript = transcript_obj.translate("en").fetch()
+            # Step 2: Try generated transcript in common languages, translate to English
+            transcript_obj = transcript_list.find_generated_transcript(
+                ["tr", "es", "fr", "de", "pt", "ja", "ko", "ar", "hi", "zh-Hans"]
+            )
+            transcript = transcript_obj.translate("en").fetch()
+        except NoTranscriptFound:
+            # Step 3: Last resort — manually created transcript, translate to English
+            transcript_obj = transcript_list.find_manually_created_transcript(
+                ["tr", "es", "fr", "de", "pt", "ja", "ko", "ar", "hi", "zh-Hans"]
+            )
+            transcript = transcript_obj.translate("en").fetch()
 
     formatter = TextFormatter()
     text = formatter.format_transcript(transcript)

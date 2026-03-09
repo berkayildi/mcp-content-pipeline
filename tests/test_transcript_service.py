@@ -29,18 +29,18 @@ class TestFetchTranscript:
 
             result = await fetch_transcript("dQw4w9WgXcQ")
             assert result == "Hello this is a transcript"
-            mock_ytt.fetch.assert_called_once_with("dQw4w9WgXcQ", languages=["en"])
+            mock_ytt.fetch.assert_called_once_with("dQw4w9WgXcQ", languages=["en", "en-US", "en-GB"])
 
     @pytest.mark.asyncio
-    async def test_fetch_transcript_fallback(self):
+    async def test_fetch_transcript_fallback_generated_translation(self):
         mock_ytt = MagicMock()
-        mock_ytt.fetch.side_effect = [
-            YouTubeTranscriptApiException("No English"),
-            YouTubeTranscriptApiException("No en-US/en-GB"),
-        ]
-        mock_transcript_obj = MagicMock()
-        mock_transcript_obj.fetch.return_value = MagicMock()
-        mock_ytt.list.return_value.find_transcript.return_value = mock_transcript_obj
+        mock_ytt.fetch.side_effect = YouTubeTranscriptApiException("No English")
+
+        mock_translated = MagicMock()
+        mock_translated.fetch.return_value = MagicMock()
+        mock_generated = MagicMock()
+        mock_generated.translate.return_value = mock_translated
+        mock_ytt.list.return_value.find_generated_transcript.return_value = mock_generated
 
         with patch("mcp_content_pipeline.services.transcript.YouTubeTranscriptApi") as MockApi, \
              patch("mcp_content_pipeline.services.transcript.TextFormatter") as MockFormatter:
@@ -50,6 +50,7 @@ class TestFetchTranscript:
 
             result = await fetch_transcript("dQw4w9WgXcQ")
             assert result == "Auto-generated transcript"
+            mock_generated.translate.assert_called_once_with("en")
 
     @pytest.mark.asyncio
     async def test_fetch_transcript_truncation(self):
@@ -124,9 +125,6 @@ class TestFetchTranscriptFallbackChain:
         mock_ytt.fetch.side_effect = YouTubeTranscriptApiException("No English")
 
         mock_transcript_list = MagicMock()
-        mock_transcript_list.find_transcript.side_effect = NoTranscriptFound(
-            "test_id", [], MagicMock()
-        )
         mock_translated = MagicMock()
         mock_translated.fetch.return_value = MagicMock()
         mock_generated = MagicMock()
@@ -151,9 +149,6 @@ class TestFetchTranscriptFallbackChain:
         mock_ytt.fetch.side_effect = YouTubeTranscriptApiException("No English")
 
         mock_transcript_list = MagicMock()
-        mock_transcript_list.find_transcript.side_effect = NoTranscriptFound(
-            "test_id", [], MagicMock()
-        )
         mock_transcript_list.find_generated_transcript.side_effect = NoTranscriptFound(
             "test_id", [], MagicMock()
         )
