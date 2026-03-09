@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/berkayyildirim/mcp-content-pipeline/compare/v0.2.1...v0.3.0) (2026-03-09)
+
+
+### Features
+
+* add cookie-based YouTube authentication for IP bypass ([daeabfe](https://github.com/berkayyildirim/mcp-content-pipeline/commit/daeabfee041143de7d9ac9eab3d573eb1bb24f83))
+
 ## [0.2.1](https://github.com/berkayyildirim/mcp-content-pipeline/compare/v0.2.0...v0.2.1) (2026-03-09)
 
 
