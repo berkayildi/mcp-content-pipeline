@@ -3,6 +3,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/mcp-content-pipeline)](https://pypi.org/project/mcp-content-pipeline/)
 [![Python](https://img.shields.io/pypi/pyversions/mcp-content-pipeline)](https://pypi.org/project/mcp-content-pipeline/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Downloads](https://img.shields.io/pypi/dm/mcp-content-pipeline)](https://pypi.org/project/mcp-content-pipeline/)
 
 A YouTube video analysis and content generation pipeline exposed as [MCP](https://modelcontextprotocol.io/) tools. Extract transcripts, generate key takeaways, TLDRs, and Twitter/X hook drafts — all callable by any MCP-compatible AI client like Claude Desktop.
 
