@@ -152,7 +152,7 @@ class TestIndexMergeBehavior:
         return VideoAnalysis(
             title=title,
             channel="Channel",
-            url=f"https://youtube.com/watch?v={title}",
+            url="https://youtube.com/watch?v={title}",
             date_analysed=date,
             key_takeaways=["t"],
             tldr="s",
@@ -263,7 +263,7 @@ class TestPipeEscaping:
         return VideoAnalysis(
             title=title,
             channel="Channel",
-            url=f"https://youtube.com/watch?v=test",
+            url="https://youtube.com/watch?v=test",
             date_analysed=date,
             key_takeaways=["t"],
             tldr="s",
