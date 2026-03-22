@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.4.2...v0.5.0) (2026-03-22)
+
+
+### Features
+
+* add image generation via Gemini API ([4b7fc3f](https://github.com/berkayildi/mcp-content-pipeline/commit/4b7fc3ff47d2f4665b3b225a0173f0bf87ae1aa7))
+
 ## [0.4.2](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.4.1...v0.4.2) (2026-03-22)
 
 
