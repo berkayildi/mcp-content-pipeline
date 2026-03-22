@@ -70,9 +70,8 @@ async def list_channel_videos(
 async def generate_image(analysis: dict) -> str:
     """Generate a comic-book style infographic image from a video analysis result.
 
-    Takes the output of analyse_video or batch_analyse and generates a
-    composite illustration summarising the key stories. Returns base64-encoded
-    PNG image data and the prompt used.
+    Saves the image to a local temp file and returns the path. Use the path
+    when calling sync_to_github with images.
 
     Args:
         analysis: Analysis result object from analyse_video or batch_analyse
@@ -86,26 +85,25 @@ async def generate_image(analysis: dict) -> str:
 async def sync_to_github(
     analyses: list[dict],
     commit_message: str = "Add video analyses",
-    images: list[dict] | None = None,
+    image_paths: list[dict] | None = None,
 ) -> str:
     """Push analysed content as markdown files to a GitHub repository.
 
     Args:
         analyses: List of analysis result objects from analyse_video or batch_analyse
         commit_message: Git commit message (default: 'Add video analyses')
-        images: Optional list of image objects with 'analysis' (dict) and 'image_base64' (str) fields
+        image_paths: Optional list of objects with 'analysis' (dict) and 'image_path' (str) fields
     """
     settings = get_settings()
     parsed = [VideoAnalysis.model_validate(a) for a in analyses]
 
     parsed_images = None
-    if images:
-        import base64
-
+    if image_paths:
         parsed_images = []
-        for img in images:
+        for img in image_paths:
             analysis_obj = VideoAnalysis.model_validate(img["analysis"])
-            image_bytes = base64.b64decode(img["image_base64"])
+            with open(img["image_path"], "rb") as f:
+                image_bytes = f.read()
             parsed_images.append((analysis_obj, image_bytes))
 
     result = await _sync_to_github(

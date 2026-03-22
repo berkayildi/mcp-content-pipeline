@@ -33,7 +33,7 @@ class TestGenerateImageTool:
             gemini_api_key="test-gemini-key",
         )
         mock_result = ImageGenerationResult(
-            image_base64="aW1hZ2VfZGF0YQ==",
+            image_path="/tmp/test-image.png",
             prompt_used="test prompt",
             analysis_title="Test Video",
         )

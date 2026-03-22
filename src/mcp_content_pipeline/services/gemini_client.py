@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
-import base64
+import os
+import tempfile
+from datetime import datetime
 
 from google import genai
 from google.genai import types
 from google.genai.errors import APIError
+from slugify import slugify
 
 from mcp_content_pipeline.models.schemas import ImageGenerationResult, VideoAnalysis
 
@@ -64,10 +67,16 @@ async def generate_image(api_key: str, model: str, analysis: VideoAnalysis) -> I
     if image_data is None:
         raise RuntimeError("Gemini API returned no image data")
 
-    image_base64 = base64.b64encode(image_data).decode("utf-8")
+    temp_dir = tempfile.gettempdir()
+    slug = slugify(analysis.title, max_length=80)
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    image_path = os.path.join(temp_dir, f"{date_str}-{slug}.png")
+
+    with open(image_path, "wb") as f:
+        f.write(image_data)
 
     return ImageGenerationResult(
-        image_base64=image_base64,
+        image_path=image_path,
         prompt_used=prompt,
         analysis_title=analysis.title,
     )
