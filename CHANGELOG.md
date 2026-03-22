@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.5.0...v0.5.1) (2026-03-22)
+
+
+### Bug Fixes
+
+* save generated images to temp file to avoid MCP 1MB transport limit ([eee99da](https://github.com/berkayildi/mcp-content-pipeline/commit/eee99da5ab7a2e4284e216acafcd082349585ad2))
+
 ## [0.5.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.4.2...v0.5.0) (2026-03-22)
 
 
