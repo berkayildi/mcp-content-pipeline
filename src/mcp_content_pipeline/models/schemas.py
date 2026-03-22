@@ -53,10 +53,17 @@ class SyncFileResult(BaseModel):
     action: str  # "created" or "updated"
 
 
+class ImageGenerationResult(BaseModel):
+    image_base64: str
+    prompt_used: str
+    analysis_title: str
+
+
 class SyncResult(BaseModel):
     files: list[SyncFileResult]
     commit_sha: str | None = None
     index_path: str | None = None
+    image_files: list[SyncFileResult] = Field(default_factory=list)
 
 
 # Rebuild BatchAnalysisResult to resolve forward reference

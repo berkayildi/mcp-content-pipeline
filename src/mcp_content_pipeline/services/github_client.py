@@ -39,6 +39,17 @@ def generate_markdown(analysis: VideoAnalysis) -> str:
 """
 
 
+def generate_image_filename(analysis: VideoAnalysis, output_dir: str) -> str:
+    """Generate a filename for the analysis image file."""
+    try:
+        date_str = datetime.fromisoformat(analysis.date_analysed).strftime("%Y-%m-%d")
+    except (ValueError, TypeError):
+        date_str = datetime.now().strftime("%Y-%m-%d")
+
+    slug = slugify(analysis.title, max_length=80)
+    return f"{output_dir}/{date_str}-{slug}.png"
+
+
 def generate_filename(analysis: VideoAnalysis, output_dir: str) -> str:
     """Generate a filename for the analysis markdown file."""
     try:
@@ -114,6 +125,40 @@ def _extract_date_from_row(row: str) -> str:
     return ""
 
 
+async def sync_images_to_github(
+    repo,
+    branch: str,
+    output_dir: str,
+    images: list[tuple[VideoAnalysis, bytes]],
+    commit_message: str,
+) -> list[SyncFileResult]:
+    """Upload binary image files to GitHub."""
+    results: list[SyncFileResult] = []
+
+    for analysis, image_bytes in images:
+        filepath = generate_image_filename(analysis, output_dir)
+        # PyGithub accepts str content and base64-encodes internally
+        import base64
+
+        content = base64.b64encode(image_bytes).decode("utf-8")
+
+        try:
+            existing = repo.get_contents(filepath, ref=branch)
+            repo.update_file(
+                filepath,
+                commit_message,
+                content,
+                existing.sha,  # type: ignore[union-attr]
+                branch=branch,
+            )
+            results.append(SyncFileResult(path=filepath, action="updated"))
+        except GithubException:
+            repo.create_file(filepath, commit_message, content, branch=branch)
+            results.append(SyncFileResult(path=filepath, action="created"))
+
+    return results
+
+
 async def sync_to_github(
     token: str,
     repo_name: str,
@@ -121,6 +166,7 @@ async def sync_to_github(
     output_dir: str,
     analyses: list[VideoAnalysis],
     commit_message: str = "Add video analyses",
+    images: list[tuple[VideoAnalysis, bytes]] | None = None,
 ) -> SyncResult:
     """Push analysis markdown files to GitHub."""
     g = Github(token)
@@ -178,8 +224,14 @@ async def sync_to_github(
 
     commit_sha = result["commit"].sha if result else None
 
+    # Upload images if provided
+    image_results: list[SyncFileResult] = []
+    if images:
+        image_results = await sync_images_to_github(repo, branch, output_dir, images, commit_message)
+
     return SyncResult(
         files=file_results,
         commit_sha=commit_sha,
         index_path=index_path,
+        image_files=image_results,
     )

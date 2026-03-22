@@ -37,7 +37,8 @@ Add to your Claude Desktop MCP config (`~/Library/Application Support/Claude/cla
       "env": {
         "MCP_CP_ANTHROPIC_API_KEY": "sk-ant-...",
         "MCP_CP_GITHUB_TOKEN": "ghp_...",
-        "MCP_CP_GITHUB_REPO": "your-username/your-repo"
+        "MCP_CP_GITHUB_REPO": "your-username/your-repo",
+        "MCP_CP_GEMINI_API_KEY": "your-gemini-api-key"
       }
     }
   }
@@ -52,6 +53,7 @@ Add to your Claude Desktop MCP config (`~/Library/Application Support/Claude/cla
 | `batch_analyse`       | Analyse multiple videos from a URL list or config file                     | `ANTHROPIC_API_KEY`           |
 | `list_channel_videos` | Fetch recent videos from a YouTube channel                                 | `YOUTUBE_API_KEY`             |
 | `sync_to_github`      | Push analyses as markdown files to a GitHub repo                           | `GITHUB_TOKEN`, `GITHUB_REPO` |
+| `generate_image`      | Generate comic-book infographic from analysis result                       | `GEMINI_API_KEY`              |
 
 ## Environment Variables
 
@@ -67,6 +69,8 @@ All prefixed with `MCP_CP_`:
 | `MCP_CP_GITHUB_OUTPUT_DIR`     | No       | Output directory in repo (default: `content/videos`)      |
 | `MCP_CP_CLAUDE_MODEL`          | No       | Claude model to use (default: `claude-sonnet-4-20250514`) |
 | `MCP_CP_MAX_TRANSCRIPT_TOKENS` | No       | Max transcript length in tokens (default: `100000`)       |
+| `MCP_CP_GEMINI_API_KEY`        | For image | Google AI Studio API key for image generation             |
+| `MCP_CP_GEMINI_MODEL`          | No        | Gemini model for images (default: `gemini-2.5-flash-image`) |
 
 ## Example Workflow
 
@@ -79,8 +83,11 @@ Chain tools together in a single conversation:
 2. "Analyse all of these videos"
    → batch_analyse processes all 5, returns analyses
 
-3. "Sync the results to GitHub"
-   → sync_to_github pushes markdown files + index to your repo
+3. "Generate images for each analysis"
+   → generate_image creates comic-book infographics for each
+
+4. "Sync the results to GitHub"
+   → sync_to_github pushes markdown files + images + index to your repo
 ```
 
 ## Development

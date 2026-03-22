@@ -8,6 +8,7 @@ from mcp_content_pipeline.config import get_settings
 from mcp_content_pipeline.models.schemas import VideoAnalysis
 from mcp_content_pipeline.tools.analyse_video import analyse_video as _analyse_video
 from mcp_content_pipeline.tools.batch_analyse import batch_analyse as _batch_analyse
+from mcp_content_pipeline.tools.generate_image import generate_image as _generate_image
 from mcp_content_pipeline.tools.list_channel_videos import (
     list_channel_videos as _list_channel_videos,
 )
@@ -66,16 +67,53 @@ async def list_channel_videos(
 
 
 @mcp.tool()
-async def sync_to_github(analyses: list[dict], commit_message: str = "Add video analyses") -> str:
+async def generate_image(analysis: dict) -> str:
+    """Generate a comic-book style infographic image from a video analysis result.
+
+    Takes the output of analyse_video or batch_analyse and generates a
+    composite illustration summarising the key stories. Returns base64-encoded
+    PNG image data and the prompt used.
+
+    Args:
+        analysis: Analysis result object from analyse_video or batch_analyse
+    """
+    settings = get_settings()
+    result = await _generate_image(analysis_data=analysis, settings=settings)
+    return result.model_dump_json(indent=2)
+
+
+@mcp.tool()
+async def sync_to_github(
+    analyses: list[dict],
+    commit_message: str = "Add video analyses",
+    images: list[dict] | None = None,
+) -> str:
     """Push analysed content as markdown files to a GitHub repository.
 
     Args:
         analyses: List of analysis result objects from analyse_video or batch_analyse
         commit_message: Git commit message (default: 'Add video analyses')
+        images: Optional list of image objects with 'analysis' (dict) and 'image_base64' (str) fields
     """
     settings = get_settings()
     parsed = [VideoAnalysis.model_validate(a) for a in analyses]
-    result = await _sync_to_github(analyses=parsed, settings=settings, commit_message=commit_message)
+
+    parsed_images = None
+    if images:
+        import base64
+
+        parsed_images = []
+        for img in images:
+            analysis_obj = VideoAnalysis.model_validate(img["analysis"])
+            image_bytes = base64.b64decode(img["image_base64"])
+            parsed_images.append((analysis_obj, image_bytes))
+
+    result = await _sync_to_github(
+        analyses=parsed,
+        settings=settings,
+        commit_message=commit_message,
+        images=parsed_images,
+    )
     return result.model_dump_json(indent=2)
 
 
