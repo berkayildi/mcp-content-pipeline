@@ -54,7 +54,7 @@ class SyncFileResult(BaseModel):
 
 
 class ImageGenerationResult(BaseModel):
-    image_base64: str
+    image_path: str
     prompt_used: str
     analysis_title: str
 

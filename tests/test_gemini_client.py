@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -96,13 +97,15 @@ class TestGenerateImage:
             result = await generate_image("fake-key", "gemini-2.5-flash-image", analysis)
 
         assert result.analysis_title == "AI News Roundup: March 2026"
-        assert len(result.image_base64) > 0
+        assert result.image_path.endswith(".png")
+        assert os.path.exists(result.image_path)
         assert result.prompt_used != ""
 
-        import base64
+        with open(result.image_path, "rb") as f:
+            saved_bytes = f.read()
+        assert saved_bytes == fake_image_bytes
 
-        decoded = base64.b64decode(result.image_base64)
-        assert decoded == fake_image_bytes
+        os.unlink(result.image_path)
 
     @pytest.mark.asyncio
     async def test_generate_image_no_image_in_response(self, analysis):
