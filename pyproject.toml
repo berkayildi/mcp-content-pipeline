@@ -21,6 +21,7 @@ dependencies = [
     "anthropic",
     "youtube-transcript-api",
     "google-api-python-client",
+    "google-genai",
     "pygithub",
     "pydantic>=2.0",
     "pydantic-settings",

@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     github_branch: str = "main"
     github_output_dir: str = "content/videos"
     claude_model: str = "claude-sonnet-4-20250514"
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.5-flash-image"
     max_transcript_tokens: int = 100000
     youtube_cookies_file: str | None = None
 

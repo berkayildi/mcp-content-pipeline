@@ -9,6 +9,7 @@ import pytest
 from mcp_content_pipeline.models.schemas import VideoAnalysis
 from mcp_content_pipeline.services.github_client import (
     generate_filename,
+    generate_image_filename,
     generate_index,
     generate_markdown,
     parse_index_entries,
@@ -313,6 +314,75 @@ class TestPipeEscaping:
             if line.startswith("|") and "Date" not in line and "---" not in line
         ]
         assert len(data_rows) == 1
+
+
+class TestGenerateImageFilename:
+    def test_image_filename_format(self, analysis):
+        filename = generate_image_filename(analysis, "content/videos")
+        assert filename == "content/videos/2026-03-08-ml-in-production-3-strategies.png"
+
+    def test_image_filename_matches_markdown_pattern(self, analysis):
+        md_filename = generate_filename(analysis, "content/videos")
+        img_filename = generate_image_filename(analysis, "content/videos")
+        # Same date-slug, different extension
+        assert md_filename.replace(".md", "") == img_filename.replace(".png", "")
+
+
+class TestSyncImagesToGithub:
+    @pytest.mark.asyncio
+    async def test_sync_with_images(self, analysis):
+        from unittest.mock import MagicMock, patch
+
+        from github import GithubException
+
+        mock_repo = MagicMock()
+        mock_repo.get_contents.side_effect = GithubException(404, "Not found", None)
+        mock_create_result = {"commit": MagicMock(sha="abc123")}
+        mock_repo.create_file.return_value = mock_create_result
+
+        with patch("mcp_content_pipeline.services.github_client.Github") as mock_github:
+            mock_github.return_value.get_repo.return_value = mock_repo
+            from mcp_content_pipeline.services.github_client import sync_to_github as _sync_gh
+
+            result = await _sync_gh(
+                token="token",
+                repo_name="owner/repo",
+                branch="main",
+                output_dir="content/videos",
+                analyses=[analysis],
+                commit_message="test",
+                images=[(analysis, b"\x89PNGfakedata")],
+            )
+
+        assert len(result.image_files) == 1
+        assert result.image_files[0].path.endswith(".png")
+        assert result.image_files[0].action == "created"
+
+    @pytest.mark.asyncio
+    async def test_sync_without_images(self, analysis):
+        from unittest.mock import MagicMock, patch
+
+        from github import GithubException
+
+        mock_repo = MagicMock()
+        mock_repo.get_contents.side_effect = GithubException(404, "Not found", None)
+        mock_create_result = {"commit": MagicMock(sha="abc123")}
+        mock_repo.create_file.return_value = mock_create_result
+
+        with patch("mcp_content_pipeline.services.github_client.Github") as mock_github:
+            mock_github.return_value.get_repo.return_value = mock_repo
+            from mcp_content_pipeline.services.github_client import sync_to_github as _sync_gh
+
+            result = await _sync_gh(
+                token="token",
+                repo_name="owner/repo",
+                branch="main",
+                output_dir="content/videos",
+                analyses=[analysis],
+                commit_message="test",
+            )
+
+        assert result.image_files == []
 
 
 class TestSyncToGithub:

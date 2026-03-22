@@ -26,6 +26,8 @@ All prefixed with `MCP_CP_`:
 - `MCP_CP_GITHUB_TOKEN` — required for sync_to_github
 - `MCP_CP_GITHUB_REPO` — format: "owner/repo"
 - `MCP_CP_CLAUDE_MODEL` — default: claude-sonnet-4-20250514
+- `MCP_CP_GEMINI_API_KEY` — required for generate_image
+- `MCP_CP_GEMINI_MODEL` — default: gemini-2.5-flash-image
 
 ## Testing
 
@@ -40,3 +42,4 @@ uv run ruff check src/ tests/
 2. `batch_analyse` — analyse multiple videos
 3. `list_channel_videos` — fetch recent videos from a channel
 4. `sync_to_github` — push analyses as markdown to GitHub
+5. `generate_image` — generate a comic-book infographic from an analysis result
