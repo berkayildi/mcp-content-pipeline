@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.4.1...v0.4.2) (2026-03-22)
+
+
+### Bug Fixes
+
+* remove f string from url ([47cfae3](https://github.com/berkayildi/mcp-content-pipeline/commit/47cfae3d036bc139f3f900effc7eb735d3038ec6))
+
 ## [0.4.1](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.4.0...v0.4.1) (2026-03-14)
 
 
