@@ -88,24 +88,6 @@ All prefixed with `MCP_CP_`:
 | `MCP_CP_GEMINI_API_KEY`        | For image | Google AI Studio API key for image generation             |
 | `MCP_CP_GEMINI_MODEL`          | No        | Gemini model for images (default: `gemini-2.5-flash-image`) |
 
-## Example Workflow
-
-Chain tools together in a single conversation:
-
-```
-1. "List the last 5 videos from channel UC_x5XG1OV2P6uZZ5FSM9Ttw"
-   → list_channel_videos returns 5 video URLs
-
-2. "Analyse all of these videos"
-   → batch_analyse processes all 5, returns analyses
-
-3. "Generate images for each analysis"
-   → generate_image creates comic-book infographics for each
-
-4. "Sync the results to GitHub"
-   → sync_to_github pushes markdown files + images + index to your repo
-```
-
 ## Development
 
 ```bash
