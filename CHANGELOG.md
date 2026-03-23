@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.5.1...v0.5.2) (2026-03-23)
+
+
+### Bug Fixes
+
+* pass raw bytes to PyGithub to prevent double base64-encoding of images ([df42a77](https://github.com/berkayildi/mcp-content-pipeline/commit/df42a777e37b4ac8de125cb9f819832afaddb99a))
+
 ## [0.5.1](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.5.0...v0.5.1) (2026-03-22)
 
 
