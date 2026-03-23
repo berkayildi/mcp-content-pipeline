@@ -45,6 +45,22 @@ Add to your Claude Desktop MCP config (`~/Library/Application Support/Claude/cla
 }
 ```
 
+## Usage
+
+Once configured in Claude Desktop, chain the tools in a single conversation:
+
+**Step 1 — Analyse**
+> "Analyse this video: https://www.youtube.com/watch?v=..."
+
+**Step 2 — Generate image**
+> "Generate an image for this analysis"
+
+**Step 3 — Sync to GitHub**
+> "Sync the analysis and image to GitHub"
+
+Or do it all in one prompt:
+> "Analyse this video, generate the image, and sync to GitHub: https://www.youtube.com/watch?v=..."
+
 ## Tools
 
 | Tool                  | Description                                                                | Requires                      |
