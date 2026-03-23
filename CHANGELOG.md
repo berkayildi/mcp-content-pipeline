@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.3](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.5.2...v0.5.3) (2026-03-23)
+
+
+### Documentation
+
+* add usage section to README ([9a29abb](https://github.com/berkayildi/mcp-content-pipeline/commit/9a29abb0b929f91daca2e643e9742f835fb0aaa7))
+* remove example workflow ([458926b](https://github.com/berkayildi/mcp-content-pipeline/commit/458926b5d5faf51ff542b7743684c563210f7aeb))
+
 ## [0.5.2](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.5.1...v0.5.2) (2026-03-23)
 
 
