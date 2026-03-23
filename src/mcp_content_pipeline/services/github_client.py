@@ -137,23 +137,19 @@ async def sync_images_to_github(
 
     for analysis, image_bytes in images:
         filepath = generate_image_filename(analysis, output_dir)
-        # PyGithub accepts str content and base64-encodes internally
-        import base64
-
-        content = base64.b64encode(image_bytes).decode("utf-8")
 
         try:
             existing = repo.get_contents(filepath, ref=branch)
             repo.update_file(
                 filepath,
                 commit_message,
-                content,
+                image_bytes,
                 existing.sha,  # type: ignore[union-attr]
                 branch=branch,
             )
             results.append(SyncFileResult(path=filepath, action="updated"))
         except GithubException:
-            repo.create_file(filepath, commit_message, content, branch=branch)
+            repo.create_file(filepath, commit_message, image_bytes, branch=branch)
             results.append(SyncFileResult(path=filepath, action="created"))
 
     return results
