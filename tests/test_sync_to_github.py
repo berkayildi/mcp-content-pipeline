@@ -359,6 +359,42 @@ class TestSyncImagesToGithub:
         assert result.image_files[0].action == "created"
 
     @pytest.mark.asyncio
+    async def test_image_bytes_passed_raw_to_github(self, analysis):
+        """Verify raw PNG bytes are passed to create_file, not base64-encoded strings."""
+        from unittest.mock import MagicMock, patch
+
+        from github import GithubException
+
+        png_bytes = b"\x89PNG\r\n\x1a\nfake_image_data"
+
+        mock_repo = MagicMock()
+        mock_repo.get_contents.side_effect = GithubException(404, "Not found", None)
+        mock_create_result = {"commit": MagicMock(sha="abc123")}
+        mock_repo.create_file.return_value = mock_create_result
+
+        with patch("mcp_content_pipeline.services.github_client.Github") as mock_github:
+            mock_github.return_value.get_repo.return_value = mock_repo
+            from mcp_content_pipeline.services.github_client import sync_to_github as _sync_gh
+
+            await _sync_gh(
+                token="token",
+                repo_name="owner/repo",
+                branch="main",
+                output_dir="content/videos",
+                analyses=[analysis],
+                commit_message="test",
+                images=[(analysis, png_bytes)],
+            )
+
+        # Find the create_file call for the .png file
+        image_calls = [c for c in mock_repo.create_file.call_args_list if c.args[0].endswith(".png")]
+        assert len(image_calls) == 1
+        content_arg = image_calls[0].args[2]
+        assert isinstance(content_arg, bytes), f"Expected bytes, got {type(content_arg)}"
+        assert content_arg.startswith(b"\x89PNG"), "Content should start with PNG magic bytes"
+        assert content_arg == png_bytes
+
+    @pytest.mark.asyncio
     async def test_sync_without_images(self, analysis):
         from unittest.mock import MagicMock, patch
 
