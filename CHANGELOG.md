@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.5.3...v0.6.0) (2026-03-25)
+
+
+### Features
+
+* upgrade default image model to Gemini 3.1 Flash ([f128f8d](https://github.com/berkayildi/mcp-content-pipeline/commit/f128f8dbd484ec1df373723b9e81ad316c7cc7e6))
+
 ## [0.5.3](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.5.2...v0.5.3) (2026-03-23)
 
 
