@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.7.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.6.0...v0.7.0) (2026-03-31)
+
+
+### Features
+
+* add cookie-based YouTube authentication for IP bypass ([daeabfe](https://github.com/berkayildi/mcp-content-pipeline/commit/daeabfee041143de7d9ac9eab3d573eb1bb24f83))
+* add image generation via Gemini API ([8d006c2](https://github.com/berkayildi/mcp-content-pipeline/commit/8d006c27be1e2f9f41abf711224b710dd4ab713b))
+* add transcript translation fallback and live URL support ([9e32e3e](https://github.com/berkayildi/mcp-content-pipeline/commit/9e32e3e516692f208823809ca46a809a76d3f607))
+* initial mcp-content-pipeline implementation ([feea870](https://github.com/berkayildi/mcp-content-pipeline/commit/feea870e9e41abc8e023071749dada3ecc6f89c8))
+* rename Twitter/X labels to Social Hook in user-facing strings ([cd38af8](https://github.com/berkayildi/mcp-content-pipeline/commit/cd38af8299e0d1ffbc9fa5f52235a8143a7e3a27))
+* upgrade default image model to Gemini 3.1 Flash ([7db88df](https://github.com/berkayildi/mcp-content-pipeline/commit/7db88dfbb921a866789697db9ec5c43876cd1b97))
+
+
+### Bug Fixes
+
+* **claude-client:** override date_analysed instead of trusting LLM response ([480dab1](https://github.com/berkayildi/mcp-content-pipeline/commit/480dab16676364f31547b63f8c417cd8fe5f1d14))
+* escape pipe characters in index table to prevent column breaking ([7d07438](https://github.com/berkayildi/mcp-content-pipeline/commit/7d07438a977fc02b783e456b9d77b1bcfa97158f))
+* pass raw bytes to PyGithub to prevent double base64-encoding of images ([bcd769c](https://github.com/berkayildi/mcp-content-pipeline/commit/bcd769c86fedb9d090632a9f6d70bf27b5921be7))
+* preserve existing index entries when syncing new analyses ([ae0cdf9](https://github.com/berkayildi/mcp-content-pipeline/commit/ae0cdf9f84f3983be7433a918812f771539124f4))
+* remove f string from url ([d4bddc4](https://github.com/berkayildi/mcp-content-pipeline/commit/d4bddc42929023e44ba1d10a6ee666458ed290de))
+* save generated images to temp file to avoid MCP 1MB transport limit ([d6b1e74](https://github.com/berkayildi/mcp-content-pipeline/commit/d6b1e74bb8039aba6ab1ac5042719988d61d0d18))
+* update youtube-transcript-api to v1.x API ([5f27c53](https://github.com/berkayildi/mcp-content-pipeline/commit/5f27c532be59876c3646ffdb853f00061b3f00f2))
+
+
+### Documentation
+
+* add usage section to README ([415c8c9](https://github.com/berkayildi/mcp-content-pipeline/commit/415c8c940b61bb8af181bdfbd343876847c8ec05))
+* **readme:** add PyPI downloads badge ([0ecb2d7](https://github.com/berkayildi/mcp-content-pipeline/commit/0ecb2d7bfc797126709866179d17bc4fc7155294))
+* remove example workflow ([72513c9](https://github.com/berkayildi/mcp-content-pipeline/commit/72513c93c8dcd1563494e68e4d36edf935d780ee))
+* update readme ([3156db9](https://github.com/berkayildi/mcp-content-pipeline/commit/3156db920934725a373e2408e3d972f55322fb64))
+
 ## [0.6.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.5.3...v0.6.0) (2026-03-25)
 
 
