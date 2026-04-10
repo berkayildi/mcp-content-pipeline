@@ -41,7 +41,7 @@ Add to your Claude Desktop MCP config (`~/Library/Application Support/Claude/cla
         "MCP_CP_GEMINI_API_KEY": "your-gemini-api-key",
         "MCP_CP_X_BEARER_TOKEN": "your-x-bearer-token",
         "MCP_CP_X_ACCOUNTS": "username1,username2,username3",
-        "MCP_CP_X_TOPICS": "AI,tech"
+        "MCP_CP_X_TOPICS": "topic1,topic2,topic3"
       }
     }
   }
