@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.7.0...v0.8.0) (2026-04-10)
+
+
+### Features
+
+* add X feed digest analysis tool ([7785f2c](https://github.com/berkayildi/mcp-content-pipeline/commit/7785f2caa87bcf66974fddc3796b3505a1ef08d0))
+
+
+### Bug Fixes
+
+* pydantic-settings ([ec57ccc](https://github.com/berkayildi/mcp-content-pipeline/commit/ec57cccde9ea771bbe81c23459b5b514700dc0ca))
+
 ## [0.7.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.6.0...v0.7.0) (2026-03-31)
 
 
