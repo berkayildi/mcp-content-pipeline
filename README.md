@@ -38,7 +38,10 @@ Add to your Claude Desktop MCP config (`~/Library/Application Support/Claude/cla
         "MCP_CP_ANTHROPIC_API_KEY": "sk-ant-...",
         "MCP_CP_GITHUB_TOKEN": "ghp_...",
         "MCP_CP_GITHUB_REPO": "your-username/your-repo",
-        "MCP_CP_GEMINI_API_KEY": "your-gemini-api-key"
+        "MCP_CP_GEMINI_API_KEY": "your-gemini-api-key",
+        "MCP_CP_X_BEARER_TOKEN": "your-x-bearer-token",
+        "MCP_CP_X_ACCOUNTS": "username1,username2,username3",
+        "MCP_CP_X_TOPICS": "AI,tech"
       }
     }
   }
@@ -50,21 +53,27 @@ Add to your Claude Desktop MCP config (`~/Library/Application Support/Claude/cla
 Once configured in Claude Desktop, chain the tools in a single conversation:
 
 **Step 1 — Analyse**
+
 > "Analyse this video: https://www.youtube.com/watch?v=..."
 
 **Step 2 — Generate image**
+
 > "Generate an image for this analysis"
 
 **Step 3 — Sync to GitHub**
+
 > "Sync the analysis and image to GitHub"
 
 Or do it all in one prompt:
+
 > "Analyse this video, generate the image, and sync to GitHub: https://www.youtube.com/watch?v=..."
 
 **X Feed Digest**
+
 > "Analyse what karpathy, garrytan, and elvissun posted about AI today"
 
 Or with the full pipeline:
+
 > "Analyse the X feed, generate the image, and sync to GitHub"
 
 ## Tools
@@ -82,33 +91,33 @@ Or with the full pipeline:
 
 All prefixed with `MCP_CP_`:
 
-| Variable                       | Required | Description                                               |
-| ------------------------------ | -------- | --------------------------------------------------------- |
-| `MCP_CP_ANTHROPIC_API_KEY`     | Yes      | Anthropic API key for Claude analysis                     |
-| `MCP_CP_YOUTUBE_API_KEY`       | No       | YouTube Data API v3 key (only for `list_channel_videos`)  |
-| `MCP_CP_GITHUB_TOKEN`          | For sync | GitHub personal access token                              |
-| `MCP_CP_GITHUB_REPO`           | For sync | Target repo in `owner/repo` format                        |
-| `MCP_CP_GITHUB_BRANCH`         | No       | Branch to push to (default: `main`)                       |
-| `MCP_CP_GITHUB_OUTPUT_DIR`     | No       | Output directory in repo (default: `content/videos`)      |
-| `MCP_CP_CLAUDE_MODEL`          | No       | Claude model to use (default: `claude-sonnet-4-20250514`) |
-| `MCP_CP_MAX_TRANSCRIPT_TOKENS` | No       | Max transcript length in tokens (default: `100000`)       |
-| `MCP_CP_GEMINI_API_KEY`        | For image | Google AI Studio API key for image generation             |
-| `MCP_CP_GEMINI_MODEL`          | No        | Gemini model for images (default: `gemini-3.1-flash-image-preview`) |
-| `MCP_CP_X_BEARER_TOKEN`       | For X digest | X API v2 bearer token                                  |
-| `MCP_CP_X_ACCOUNTS`           | For X digest | Comma-separated X usernames                            |
-| `MCP_CP_X_TOPICS`             | No           | Comma-separated topics (default: AI,tech)              |
+| Variable                       | Required     | Description                                                         |
+| ------------------------------ | ------------ | ------------------------------------------------------------------- |
+| `MCP_CP_ANTHROPIC_API_KEY`     | Yes          | Anthropic API key for Claude analysis                               |
+| `MCP_CP_YOUTUBE_API_KEY`       | No           | YouTube Data API v3 key (only for `list_channel_videos`)            |
+| `MCP_CP_GITHUB_TOKEN`          | For sync     | GitHub personal access token                                        |
+| `MCP_CP_GITHUB_REPO`           | For sync     | Target repo in `owner/repo` format                                  |
+| `MCP_CP_GITHUB_BRANCH`         | No           | Branch to push to (default: `main`)                                 |
+| `MCP_CP_GITHUB_OUTPUT_DIR`     | No           | Output directory in repo (default: `content/videos`)                |
+| `MCP_CP_CLAUDE_MODEL`          | No           | Claude model to use (default: `claude-sonnet-4-20250514`)           |
+| `MCP_CP_MAX_TRANSCRIPT_TOKENS` | No           | Max transcript length in tokens (default: `100000`)                 |
+| `MCP_CP_GEMINI_API_KEY`        | For image    | Google AI Studio API key for image generation                       |
+| `MCP_CP_GEMINI_MODEL`          | No           | Gemini model for images (default: `gemini-3.1-flash-image-preview`) |
+| `MCP_CP_X_BEARER_TOKEN`        | For X digest | X API v2 bearer token                                               |
+| `MCP_CP_X_ACCOUNTS`            | For X digest | Comma-separated X usernames                                         |
+| `MCP_CP_X_TOPICS`              | No           | Comma-separated topics (default: AI,tech)                           |
 
 ## Cost Projections
 
 Estimated monthly costs for two usage patterns:
 
-| Service                        | Daily (every day)       | Weekly X + daily YouTube |
-| ------------------------------ | ----------------------- | ------------------------ |
-| YouTube analysis (Claude API)  | ~$3–5/mo (1 video/day) | ~$3–5/mo (1 video/day)   |
-| X feed digest (Claude API)     | ~$2–3/mo               | ~$0.50/mo                |
-| Image generation (Gemini API)  | ~$2/mo ($0.067/image)  | ~$2/mo ($0.067/image)    |
-| X API reads                    | ~$4/mo ($0.13/day)     | ~$0.60/mo ($0.15/week)   |
-| **Total**                      | **~$11–14/mo**         | **~$6–8/mo**             |
+| Service                       | Daily (every day)      | Weekly X + daily YouTube |
+| ----------------------------- | ---------------------- | ------------------------ |
+| YouTube analysis (Claude API) | ~$3–5/mo (1 video/day) | ~$3–5/mo (1 video/day)   |
+| X feed digest (Claude API)    | ~$2–3/mo               | ~$0.50/mo                |
+| Image generation (Gemini API) | ~$2/mo ($0.067/image)  | ~$2/mo ($0.067/image)    |
+| X API reads                   | ~$4/mo ($0.13/day)     | ~$0.60/mo ($0.15/week)   |
+| **Total**                     | **~$11–14/mo**         | **~$6–8/mo**             |
 
 > Claude API costs depend on your Anthropic billing plan and are separate from the X API and Gemini totals shown above. The X API spending cap can be configured in the [developer console](https://developer.x.com/).
 
