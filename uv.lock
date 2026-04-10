@@ -835,12 +835,13 @@ cli = [
 
 [[package]]
 name = "mcp-content-pipeline"
-version = "0.6.0"
+version = "0.7.0"
 source = { editable = "." }
 dependencies = [
     { name = "anthropic" },
     { name = "google-api-python-client" },
     { name = "google-genai" },
+    { name = "httpx" },
     { name = "mcp", extra = ["cli"] },
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -862,6 +863,7 @@ requires-dist = [
     { name = "anthropic" },
     { name = "google-api-python-client" },
     { name = "google-genai" },
+    { name = "httpx" },
     { name = "mcp", extras = ["cli"] },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pydantic-settings" },

@@ -26,6 +26,9 @@ All prefixed with `MCP_CP_`:
 - `MCP_CP_GITHUB_TOKEN` — required for sync_to_github
 - `MCP_CP_GITHUB_REPO` — format: "owner/repo"
 - `MCP_CP_CLAUDE_MODEL` — default: claude-sonnet-4-20250514
+- `MCP_CP_X_BEARER_TOKEN` — required for analyse_x_feed
+- `MCP_CP_X_ACCOUNTS` — comma-separated X usernames
+- `MCP_CP_X_TOPICS` — comma-separated topics (default: AI,tech)
 - `MCP_CP_GEMINI_API_KEY` — required for generate_image
 - `MCP_CP_GEMINI_MODEL` — default: gemini-3.1-flash-image-preview
 
@@ -43,3 +46,4 @@ uv run ruff check src/ tests/
 3. `list_channel_videos` — fetch recent videos from a channel
 4. `sync_to_github` — push analyses as markdown to GitHub
 5. `generate_image` — generate a comic-book infographic from an analysis result
+6. `analyse_x_feed` — analyse recent posts from curated X accounts

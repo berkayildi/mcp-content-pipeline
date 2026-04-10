@@ -5,8 +5,9 @@ from __future__ import annotations
 from mcp.server.fastmcp import FastMCP
 
 from mcp_content_pipeline.config import get_settings
-from mcp_content_pipeline.models.schemas import VideoAnalysis
+from mcp_content_pipeline.models.schemas import VideoAnalysis, XDigestAnalysis
 from mcp_content_pipeline.tools.analyse_video import analyse_video as _analyse_video
+from mcp_content_pipeline.tools.analyse_x_feed import analyse_x_feed as _analyse_x_feed
 from mcp_content_pipeline.tools.batch_analyse import batch_analyse as _batch_analyse
 from mcp_content_pipeline.tools.generate_image import generate_image as _generate_image
 from mcp_content_pipeline.tools.list_channel_videos import (
@@ -82,10 +83,34 @@ async def generate_image(analysis: dict) -> str:
 
 
 @mcp.tool()
+async def analyse_x_feed(
+    usernames: list[str] | None = None,
+    topics: list[str] | None = None,
+    hours_back: int = 24,
+) -> str:
+    """Analyse recent posts from curated X accounts — generates key takeaways, TLDR, and social hook.
+
+    Args:
+        usernames: X usernames to analyse (defaults to configured accounts)
+        topics: Topics to focus on (defaults to configured topics)
+        hours_back: How far back to fetch posts (default: 24)
+    """
+    settings = get_settings()
+    result = await _analyse_x_feed(
+        settings=settings,
+        usernames=usernames,
+        topics=topics,
+        hours_back=hours_back,
+    )
+    return result.model_dump_json(indent=2)
+
+
+@mcp.tool()
 async def sync_to_github(
     analyses: list[dict],
     commit_message: str = "Add video analyses",
     image_paths: list[dict] | None = None,
+    x_digests: list[dict] | None = None,
 ) -> str:
     """Push analysed content as markdown files to a GitHub repository.
 
@@ -93,6 +118,7 @@ async def sync_to_github(
         analyses: List of analysis result objects from analyse_video or batch_analyse
         commit_message: Git commit message (default: 'Add video analyses')
         image_paths: Optional list of objects with 'analysis' (dict) and 'image_path' (str) fields
+        x_digests: Optional list of X digest analysis objects from analyse_x_feed
     """
     settings = get_settings()
     parsed = [VideoAnalysis.model_validate(a) for a in analyses]
@@ -106,11 +132,16 @@ async def sync_to_github(
                 image_bytes = f.read()
             parsed_images.append((analysis_obj, image_bytes))
 
+    parsed_digests = None
+    if x_digests:
+        parsed_digests = [XDigestAnalysis.model_validate(d) for d in x_digests]
+
     result = await _sync_to_github(
         analyses=parsed,
         settings=settings,
         commit_message=commit_message,
         images=parsed_images,
+        x_digests=parsed_digests,
     )
     return result.model_dump_json(indent=2)
 

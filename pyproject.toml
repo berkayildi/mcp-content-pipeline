@@ -26,6 +26,7 @@ dependencies = [
     "pydantic>=2.0",
     "pydantic-settings",
     "python-slugify",
+    "httpx",
 ]
 
 [project.urls]
@@ -62,4 +63,5 @@ select = ["E", "F", "I", "W"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/mcp_content_pipeline/services/claude_client.py" = ["E501"]
+"src/mcp_content_pipeline/services/x_digest_client.py" = ["E501"]
 "tests/*" = ["E501"]

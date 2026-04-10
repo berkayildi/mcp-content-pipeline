@@ -8,7 +8,7 @@ from datetime import datetime
 from github import Github, GithubException
 from slugify import slugify
 
-from mcp_content_pipeline.models.schemas import SyncFileResult, SyncResult, VideoAnalysis
+from mcp_content_pipeline.models.schemas import SyncFileResult, SyncResult, VideoAnalysis, XDigestAnalysis
 
 
 def generate_markdown(analysis: VideoAnalysis) -> str:
@@ -48,6 +48,58 @@ def generate_image_filename(analysis: VideoAnalysis, output_dir: str) -> str:
 
     slug = slugify(analysis.title, max_length=80)
     return f"{output_dir}/{date_str}-{slug}.png"
+
+
+def generate_x_digest_markdown(digest: XDigestAnalysis) -> str:
+    """Generate a markdown file from an X digest analysis result."""
+    accounts = ", ".join(digest.accounts)
+    topics = ", ".join(digest.topics)
+    takeaways = "\n".join(f"- {t}" for t in digest.key_takeaways)
+
+    notable_sections = []
+    for post in digest.notable_posts:
+        notable_sections.append(f"""### @{post.author_username}
+> {post.text}
+{post.url}
+*{post.why_notable}*""")
+
+    notable = "\n\n".join(notable_sections)
+
+    return f"""# {digest.title}
+
+**Accounts:** {accounts}
+**Analysed:** {digest.date_analysed}
+**Topics:** {topics}
+**Posts analysed:** {digest.post_count}
+
+---
+
+## Key Takeaways
+
+{takeaways}
+
+## TLDR
+
+{digest.tldr}
+
+## Social Hook
+
+> {digest.twitter_hook}
+
+## Notable Posts
+
+{notable}
+"""
+
+
+def generate_x_digest_filename(digest: XDigestAnalysis, output_dir: str) -> str:
+    """Generate a filename for an X digest markdown file."""
+    try:
+        date_str = datetime.fromisoformat(digest.date_analysed).strftime("%Y-%m-%d")
+    except (ValueError, TypeError):
+        date_str = datetime.now().strftime("%Y-%m-%d")
+
+    return f"{output_dir}/{date_str}-x-digest.md"
 
 
 def generate_filename(analysis: VideoAnalysis, output_dir: str) -> str:
@@ -163,6 +215,7 @@ async def sync_to_github(
     analyses: list[VideoAnalysis],
     commit_message: str = "Add video analyses",
     images: list[tuple[VideoAnalysis, bytes]] | None = None,
+    x_digests: list[XDigestAnalysis] | None = None,
 ) -> SyncResult:
     """Push analysis markdown files to GitHub."""
     g = Github(token)
@@ -173,6 +226,25 @@ async def sync_to_github(
     for analysis in analyses:
         filepath = generate_filename(analysis, output_dir)
         content = generate_markdown(analysis)
+
+        try:
+            existing = repo.get_contents(filepath, ref=branch)
+            repo.update_file(
+                filepath,
+                commit_message,
+                content,
+                existing.sha,  # type: ignore[union-attr]
+                branch=branch,
+            )
+            file_results.append(SyncFileResult(path=filepath, action="updated"))
+        except GithubException:
+            repo.create_file(filepath, commit_message, content, branch=branch)
+            file_results.append(SyncFileResult(path=filepath, action="created"))
+
+    # Sync X digest files
+    for digest in x_digests or []:
+        filepath = generate_x_digest_filename(digest, output_dir)
+        content = generate_x_digest_markdown(digest)
 
         try:
             existing = repo.get_contents(filepath, ref=branch)

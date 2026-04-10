@@ -61,6 +61,12 @@ Once configured in Claude Desktop, chain the tools in a single conversation:
 Or do it all in one prompt:
 > "Analyse this video, generate the image, and sync to GitHub: https://www.youtube.com/watch?v=..."
 
+**X Feed Digest**
+> "Analyse what karpathy, garrytan, and elvissun posted about AI today"
+
+Or with the full pipeline:
+> "Analyse the X feed, generate the image, and sync to GitHub"
+
 ## Tools
 
 | Tool                  | Description                                                                | Requires                      |
@@ -69,6 +75,7 @@ Or do it all in one prompt:
 | `batch_analyse`       | Analyse multiple videos from a URL list or config file                     | `ANTHROPIC_API_KEY`           |
 | `list_channel_videos` | Fetch recent videos from a YouTube channel                                 | `YOUTUBE_API_KEY`             |
 | `sync_to_github`      | Push analyses as markdown files to a GitHub repo                           | `GITHUB_TOKEN`, `GITHUB_REPO` |
+| `analyse_x_feed`      | Analyse recent posts from curated X accounts — daily digest                | `X_BEARER_TOKEN`              |
 | `generate_image`      | Generate comic-book infographic from analysis result                       | `GEMINI_API_KEY`              |
 
 ## Environment Variables
@@ -87,6 +94,9 @@ All prefixed with `MCP_CP_`:
 | `MCP_CP_MAX_TRANSCRIPT_TOKENS` | No       | Max transcript length in tokens (default: `100000`)       |
 | `MCP_CP_GEMINI_API_KEY`        | For image | Google AI Studio API key for image generation             |
 | `MCP_CP_GEMINI_MODEL`          | No        | Gemini model for images (default: `gemini-3.1-flash-image-preview`) |
+| `MCP_CP_X_BEARER_TOKEN`       | For X digest | X API v2 bearer token                                  |
+| `MCP_CP_X_ACCOUNTS`           | For X digest | Comma-separated X usernames                            |
+| `MCP_CP_X_TOPICS`             | No           | Comma-separated topics (default: AI,tech)              |
 
 ## Development
 

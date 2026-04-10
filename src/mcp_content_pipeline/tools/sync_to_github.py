@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from mcp_content_pipeline.config import Settings
-from mcp_content_pipeline.models.schemas import SyncResult, VideoAnalysis
+from mcp_content_pipeline.models.schemas import SyncResult, VideoAnalysis, XDigestAnalysis
 from mcp_content_pipeline.services.github_client import (
     sync_to_github as _sync_to_github,
 )
@@ -14,6 +14,7 @@ async def sync_to_github(
     settings: Settings,
     commit_message: str = "Add video analyses",
     images: list[tuple[VideoAnalysis, bytes]] | None = None,
+    x_digests: list[XDigestAnalysis] | None = None,
 ) -> SyncResult:
     """Push analysed content as markdown files to a GitHub repository."""
     if len(commit_message) > 500:
@@ -40,4 +41,5 @@ async def sync_to_github(
         analyses=analyses,
         commit_message=commit_message,
         images=images,
+        x_digests=x_digests,
     )
