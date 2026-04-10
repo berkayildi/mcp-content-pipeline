@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.8.1](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.8.0...v0.8.1) (2026-04-10)
+
+
+### Documentation
+
+* add cost and project details ([7e82f2c](https://github.com/berkayildi/mcp-content-pipeline/commit/7e82f2c1bccb97f320467fa9ecd84c5584ae73c3))
+* add X env vars to Claude Desktop config example ([5fde080](https://github.com/berkayildi/mcp-content-pipeline/commit/5fde080cc6f1324f859e35f82d56fb9b950f11d3))
+* update topic section ([d5b57cd](https://github.com/berkayildi/mcp-content-pipeline/commit/d5b57cd64a6b439f0637a73ed5e19f7709e40097))
+
 ## [0.8.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.7.0...v0.8.0) (2026-04-10)
 
 
