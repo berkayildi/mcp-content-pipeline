@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/pypi/pyversions/mcp-content-pipeline)](https://pypi.org/project/mcp-content-pipeline/)
 
-A YouTube video analysis and content generation pipeline exposed as [MCP](https://modelcontextprotocol.io/) tools. Extract transcripts, generate key takeaways, TLDRs, and Twitter/X hook drafts — all callable by any MCP-compatible AI client like Claude Desktop.
+A YouTube video analysis and X feed digest pipeline exposed as [MCP](https://modelcontextprotocol.io/) tools. Extract transcripts, generate key takeaways, TLDRs, and Twitter/X hook drafts — plus daily X feed digests from curated accounts — all callable by any MCP-compatible AI client like Claude Desktop.
 
 ## Why?
 
@@ -97,6 +97,20 @@ All prefixed with `MCP_CP_`:
 | `MCP_CP_X_BEARER_TOKEN`       | For X digest | X API v2 bearer token                                  |
 | `MCP_CP_X_ACCOUNTS`           | For X digest | Comma-separated X usernames                            |
 | `MCP_CP_X_TOPICS`             | No           | Comma-separated topics (default: AI,tech)              |
+
+## Cost Projections
+
+Estimated monthly costs for two usage patterns:
+
+| Service                        | Daily (every day)       | Weekly X + daily YouTube |
+| ------------------------------ | ----------------------- | ------------------------ |
+| YouTube analysis (Claude API)  | ~$3–5/mo (1 video/day) | ~$3–5/mo (1 video/day)   |
+| X feed digest (Claude API)     | ~$2–3/mo               | ~$0.50/mo                |
+| Image generation (Gemini API)  | ~$2/mo ($0.067/image)  | ~$2/mo ($0.067/image)    |
+| X API reads                    | ~$4/mo ($0.13/day)     | ~$0.60/mo ($0.15/week)   |
+| **Total**                      | **~$11–14/mo**         | **~$6–8/mo**             |
+
+> Claude API costs depend on your Anthropic billing plan and are separate from the X API and Gemini totals shown above. The X API spending cap can be configured in the [developer console](https://developer.x.com/).
 
 ## Development
 
