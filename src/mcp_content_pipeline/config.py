@@ -1,7 +1,14 @@
 """Settings via environment variables."""
 
-from pydantic import field_validator
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _split_csv(v: str | list[str]) -> list[str]:
+    """Split a comma-separated string into a list of strings."""
+    if isinstance(v, str):
+        return [s.strip() for s in v.split(",") if s.strip()] if v else []
+    return list(v)
 
 
 class Settings(BaseSettings):
@@ -17,24 +24,16 @@ class Settings(BaseSettings):
     max_transcript_tokens: int = 100000
     youtube_cookies_file: str | None = None
     x_bearer_token: str = ""
-    x_accounts: list[str] = []
-    x_topics: list[str] = []
+    x_accounts: str | list[str] = []
+    x_topics: str | list[str] = []
 
     model_config = SettingsConfigDict(env_prefix="MCP_CP_")
 
-    @field_validator("x_accounts", mode="before")
-    @classmethod
-    def _split_x_accounts(cls, v: str | list[str]) -> list[str]:
-        if isinstance(v, str):
-            return [s.strip() for s in v.split(",") if s.strip()] if v else []
-        return v
-
-    @field_validator("x_topics", mode="before")
-    @classmethod
-    def _split_x_topics(cls, v: str | list[str]) -> list[str]:
-        if isinstance(v, str):
-            return [s.strip() for s in v.split(",") if s.strip()] if v else []
-        return v
+    @model_validator(mode="after")
+    def _split_csv_fields(self) -> "Settings":
+        self.x_accounts = _split_csv(self.x_accounts)
+        self.x_topics = _split_csv(self.x_topics)
+        return self
 
 
 def get_settings() -> Settings:
