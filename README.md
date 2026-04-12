@@ -41,8 +41,8 @@ Add to your Claude Desktop MCP config (`~/Library/Application Support/Claude/cla
         "MCP_CP_GITHUB_REPO": "your-username/your-repo",
         "MCP_CP_GEMINI_API_KEY": "your-gemini-api-key",
         "MCP_CP_X_BEARER_TOKEN": "your-x-bearer-token",
-        "MCP_CP_X_ACCOUNTS": "username1,username2,username3",
-        "MCP_CP_X_TOPICS": "topic1,topic2,topic3"
+        "MCP_CP_X_ACCOUNTS": "karpathy,bcherny,atmoio,steipete",
+        "MCP_CP_X_TOPICS": "AI,tech,engineering"
       }
     }
   }
@@ -63,7 +63,7 @@ Or all in one prompt:
 
 **X Feed Digest**
 > "Analyse the X feed"
-> "Analyse what karpathy, garrytan, and elvissun posted about AI today"
+> "Analyse what karpathy, bcherny, atmoio, and steipete posted about AI today"
 > "Analyse the top posts from the last week"
 
 Or with the full pipeline:

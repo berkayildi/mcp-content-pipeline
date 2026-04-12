@@ -23,7 +23,7 @@ def x_settings():
     return Settings(
         anthropic_api_key="test-api-key",
         x_bearer_token="test-bearer-token",
-        x_accounts=["karpathy", "garrytan"],
+        x_accounts=["karpathy", "bcherny"],
         x_topics=["AI", "tech"],
     )
 
@@ -31,7 +31,7 @@ def x_settings():
 @pytest.fixture
 def sample_feed_result():
     return XFeedFetchResult(
-        accounts=["karpathy", "garrytan"],
+        accounts=["karpathy", "bcherny"],
         posts=[
             XPost(
                 id="1",
@@ -51,7 +51,7 @@ def sample_feed_result():
 def sample_digest():
     return XDigestAnalysis(
         title="AI Agents — X Feed Digest",
-        accounts=["karpathy", "garrytan"],
+        accounts=["karpathy", "bcherny"],
         topics=["AI", "tech"],
         key_takeaways=["AI agents are becoming mainstream", "Infrastructure investment accelerating"],
         tldr="Key AI voices highlight agents as the next frontier.",
@@ -144,7 +144,7 @@ class TestAnalyseXFeed:
             # Should use settings defaults
             mock_fetch.assert_called_once_with(
                 bearer_token="test-bearer-token",
-                usernames=["karpathy", "garrytan"],
+                usernames=["karpathy", "bcherny"],
                 hours_back=24,
             )
             mock_analyse.assert_called_once()
@@ -166,13 +166,13 @@ class TestAnalyseXFeed:
         ):
             await analyse_x_feed(
                 settings=x_settings,
-                usernames=["elvissun"],
+                usernames=["atmoio"],
                 topics=["startups"],
                 hours_back=48,
             )
             mock_fetch.assert_called_once_with(
                 bearer_token="test-bearer-token",
-                usernames=["elvissun"],
+                usernames=["atmoio"],
                 hours_back=48,
             )
             assert mock_analyse.call_args.kwargs["topics"] == ["startups"]

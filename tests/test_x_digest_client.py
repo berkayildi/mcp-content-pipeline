@@ -19,7 +19,7 @@ from mcp_content_pipeline.services.x_digest_client import (
 @pytest.fixture
 def sample_feed_result():
     return XFeedFetchResult(
-        accounts=["karpathy", "garrytan"],
+        accounts=["karpathy", "bcherny"],
         posts=[
             XPost(
                 id="1",
@@ -34,10 +34,10 @@ def sample_feed_result():
             XPost(
                 id="2",
                 text="Investing in AI infrastructure pays off long-term",
-                author_username="garrytan",
-                author_name="Garry Tan",
+                author_username="bcherny",
+                author_name="Boris Cherny",
                 created_at="2026-04-10T09:00:00Z",
-                url="https://x.com/garrytan/status/2",
+                url="https://x.com/bcherny/status/2",
                 like_count=200,
                 retweet_count=50,
             ),
@@ -49,7 +49,7 @@ def sample_feed_result():
 def sample_digest_response():
     return {
         "title": "AI Agents & Infrastructure — X Feed Digest",
-        "accounts": ["karpathy", "garrytan"],
+        "accounts": ["karpathy", "bcherny"],
         "topics": ["AI", "tech"],
         "key_takeaways": [
             "AI agents are becoming the primary productivity tool",
@@ -58,7 +58,7 @@ def sample_digest_response():
             "Practical applications are moving beyond chatbots",
         ],
         "tldr": "Key AI voices highlight agents and infrastructure as the next frontier. "
-        "Both Karpathy and Tan see practical AI deployment accelerating beyond chatbots.",
+        "Both Karpathy and Cherny see practical AI deployment accelerating beyond chatbots.",
         "twitter_hook": "AI agents aren't just hype — they're replacing entire workflows. "
         "Two of tech's sharpest minds agree on what's next #AI #Agents",
         "notable_posts": [
@@ -76,7 +76,7 @@ def sample_digest_response():
 class TestBuildUserPrompt:
     def test_basic_prompt(self, sample_feed_result):
         prompt = build_user_prompt(sample_feed_result, ["AI", "tech"])
-        assert "Accounts: karpathy, garrytan" in prompt
+        assert "Accounts: karpathy, bcherny" in prompt
         assert "Topics: AI, tech" in prompt
         assert "Total posts: 2" in prompt
         assert "@karpathy" in prompt
@@ -125,7 +125,7 @@ class TestParseDigestResponse:
             "notable_posts": [],
         }
         result = parse_digest_response(json.dumps(data), sample_feed_result, ["AI", "tech"])
-        assert result.accounts == ["karpathy", "garrytan"]
+        assert result.accounts == ["karpathy", "bcherny"]
         assert result.topics == ["AI", "tech"]
         assert result.post_count == 2
 
