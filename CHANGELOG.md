@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.9.0...v0.9.1) (2026-04-12)
+
+
+### Documentation
+
+* update directive ([c9b1f35](https://github.com/berkayildi/mcp-content-pipeline/commit/c9b1f354e8fc52c1b816ee1c3e56406867a9a09f))
+* update usage examples to match working tool triggers ([b7379a6](https://github.com/berkayildi/mcp-content-pipeline/commit/b7379a61e508bf80ca148ccf150ef383785fdcfa))
+
 ## [0.9.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.8.1...v0.9.0) (2026-04-12)
 
 
