@@ -113,15 +113,25 @@ All prefixed with `MCP_CP_`:
 
 Estimated monthly costs for two usage patterns:
 
-| Service                       | Daily (every day)      | Weekly X + daily YouTube |
-| ----------------------------- | ---------------------- | ------------------------ |
-| YouTube analysis (Claude API) | ~$3–5/mo (1 video/day) | ~$3–5/mo (1 video/day)   |
-| X feed digest (Claude API)    | ~$2–3/mo               | ~$0.50/mo                |
-| Image generation (Gemini API) | ~$2/mo ($0.067/image)  | ~$2/mo ($0.067/image)    |
-| X API reads                   | ~$4/mo ($0.13/day)     | ~$0.60/mo ($0.15/week)   |
-| **Total**                     | **~$11–14/mo**         | **~$6–8/mo**             |
+| Service                       | Daily (every day)       | Weekly X + daily YouTube |
+| ----------------------------- | ----------------------- | ------------------------ |
+| YouTube analysis (Claude API) | ~$3–5/mo (1 video/day)  | ~$3–5/mo (1 video/day)   |
+| X feed digest (Claude API)    | ~$2–3/mo                | ~$0.50/mo                |
+| Image generation (Gemini API) | ~$2/mo ($0.067/image)   | ~$2/mo ($0.067/image)    |
+| X API reads                   | ~$4/mo ($0.13/day)      | ~$0.60/mo ($0.15/week)   |
+| Supadata transcript API       | ~$0 (free tier: 100/mo) | ~$0 (free tier: 100/mo)  |
+| **Total (excl. Claude API)**  | **~$6–9/mo**            | **~$3–5/mo**             |
 
-> Claude API costs depend on your Anthropic billing plan and are separate from the X API and Gemini totals shown above. The X API spending cap can be configured in the [developer console](https://developer.x.com/).
+> Claude API costs depend on your Anthropic billing plan and are not included in the totals above. If you already use Claude Pro ($20/mo), there is no additional Claude cost. The X API spending cap can be configured in the [developer console](https://developer.x.com/).
+
+### What this replaces
+
+| Subscription          | Monthly cost | What the pipeline covers instead                           |
+| --------------------- | ------------ | ---------------------------------------------------------- |
+| Google One AI Premium  | ~$20/mo     | Image generation via Gemini API (~$2/mo)                   |
+| X Premium              | ~$8/mo      | X feed reading via API (~$0.60–4/mo)                       |
+| YouTube Premium        | ~$14/mo     | Transcript extraction via Supadata (free tier)             |
+| **Total saved**        | **~$42/mo** | **Pipeline cost: ~$3–9/mo** (plus your existing Claude plan) |
 
 ## Development
 
