@@ -192,6 +192,33 @@ class TestFetchVideoMetadata:
             assert "youtube.com/watch?v=dQw4w9WgXcQ" in result["url"]
 
     @pytest.mark.asyncio
+    async def test_fetch_metadata_from_live_url(self):
+        """Live URLs are normalised to watch?v= for oEmbed."""
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            "title": "Live Stream",
+            "author_name": "Live Channel",
+        }
+        mock_response.raise_for_status = MagicMock()
+
+        mock_client = AsyncMock()
+        mock_client.get = AsyncMock(return_value=mock_response)
+
+        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
+            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
+
+            result = await fetch_video_metadata("https://www.youtube.com/live/-c7k_MT84eQ")
+            assert result["title"] == "Live Stream"
+            assert result["channel"] == "Live Channel"
+            assert result["url"] == "https://www.youtube.com/watch?v=-c7k_MT84eQ"
+
+            # Verify the oEmbed call used the normalised watch URL, not the live URL
+            call_url = mock_client.get.call_args[0][0]
+            assert "watch?v=-c7k_MT84eQ" in call_url
+            assert "/live/" not in call_url
+
+    @pytest.mark.asyncio
     async def test_fetch_metadata_missing_fields(self):
         mock_response = MagicMock()
         mock_response.json.return_value = {}

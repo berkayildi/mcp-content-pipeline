@@ -89,9 +89,19 @@ def _truncate(text: str, max_tokens: int) -> str:
     return text
 
 
-async def fetch_video_metadata(video_id: str) -> dict:
-    """Fetch video metadata via oembed (no API key needed)."""
-    url = f"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={video_id}&format=json"
+async def fetch_video_metadata(video_id_or_url: str) -> dict:
+    """Fetch video metadata via oembed (no API key needed).
+
+    Accepts a bare video ID or any YouTube URL (including /live/ URLs).
+    The URL is normalised to youtube.com/watch?v= before calling oEmbed,
+    because the oEmbed endpoint rejects /live/ URLs.
+    """
+    try:
+        video_id = parse_video_id(video_id_or_url)
+    except ValueError:
+        video_id = video_id_or_url
+    watch_url = f"https://www.youtube.com/watch?v={video_id}"
+    url = f"https://www.youtube.com/oembed?url={watch_url}&format=json"
     async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
         resp = await client.get(url)
         resp.raise_for_status()
