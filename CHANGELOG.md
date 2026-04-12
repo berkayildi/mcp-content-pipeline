@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.9.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.8.1...v0.9.0) (2026-04-12)
+
+
+### Features
+
+* replace youtube-transcript-api with Supadata API ([a674a7d](https://github.com/berkayildi/mcp-content-pipeline/commit/a674a7d7a26f6bb101496e794559c190dfe7b2ae))
+
+
+### Documentation
+
+* rewrite README and improve tool descriptions for discovery ([9e9304f](https://github.com/berkayildi/mcp-content-pipeline/commit/9e9304f0166b25441337458126e63fdae11e99f6))
+* update example X accounts ([dd7cd18](https://github.com/berkayildi/mcp-content-pipeline/commit/dd7cd185620ef03dea21b6e2eeffd75d31ffa28a))
+
 ## [0.8.1](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.8.0...v0.8.1) (2026-04-10)
 
 
