@@ -51,20 +51,22 @@ Add to your Claude Desktop MCP config (`~/Library/Application Support/Claude/cla
 
 ## Usage
 
-Once configured in Claude Desktop, use the tools in a single conversation:
+Once configured in Claude Desktop, use the tools in a single conversation.
+
+> **Tip:** Including "content pipeline" for YouTube or "X feed" for Twitter helps Claude Desktop route to the right tool.
 
 **YouTube Analysis**
-> "Analyse this video: https://www.youtube.com/watch?v=..."
+> "Use content pipeline to analyse this video: https://www.youtube.com/watch?v=..."
 > "Generate an image for this analysis"
 > "Sync the analysis and image to GitHub"
 
 Or all in one prompt:
-> "Analyse this video, generate the image, and sync to GitHub: https://www.youtube.com/watch?v=..."
+> "Use content pipeline to analyse this video, generate the image, and sync to GitHub: https://www.youtube.com/watch?v=..."
 
 **X Feed Digest**
 > "Analyse the X feed"
-> "Analyse what karpathy, bcherny, atmoio, and steipete posted about AI today"
-> "Analyse the top posts from the last week"
+> "Analyse the X feed for karpathy, bcherny, atmoio, and steipete about AI today"
+> "Analyse the X feed from the last 7 days"
 
 Or with the full pipeline:
 > "Analyse the X feed, generate the image, and sync to GitHub"
