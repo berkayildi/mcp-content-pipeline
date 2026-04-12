@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -41,11 +42,37 @@ class TestGenerateImageTool:
             "mcp_content_pipeline.tools.generate_image._generate_image",
             new_callable=AsyncMock,
             return_value=mock_result,
-        ):
+        ) as mock_gen:
             result = await generate_image(analysis_data=valid_analysis_dict, settings=settings)
 
         assert isinstance(result, ImageGenerationResult)
         assert result.analysis_title == "Test Video"
+        # Verify output_dir is passed (defaults to ~/Downloads when image_output_dir is empty)
+        call_kwargs = mock_gen.call_args.kwargs
+        assert call_kwargs["output_dir"] == os.path.expanduser("~/Downloads")
+
+    @pytest.mark.asyncio
+    async def test_custom_output_dir(self, valid_analysis_dict):
+        settings = Settings(
+            anthropic_api_key="test",
+            gemini_api_key="test-gemini-key",
+            image_output_dir="/custom/images",
+        )
+        mock_result = ImageGenerationResult(
+            image_path="/custom/images/test-image.png",
+            prompt_used="test prompt",
+            analysis_title="Test Video",
+        )
+        with patch(
+            "mcp_content_pipeline.tools.generate_image._generate_image",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ) as mock_gen:
+            result = await generate_image(analysis_data=valid_analysis_dict, settings=settings)
+
+        assert isinstance(result, ImageGenerationResult)
+        call_kwargs = mock_gen.call_args.kwargs
+        assert call_kwargs["output_dir"] == "/custom/images"
 
     @pytest.mark.asyncio
     async def test_missing_api_key(self, valid_analysis_dict):

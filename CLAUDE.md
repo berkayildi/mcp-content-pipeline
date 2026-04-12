@@ -31,6 +31,7 @@ All prefixed with `MCP_CP_`:
 - `MCP_CP_X_TOPICS` — comma-separated topics (default: AI,tech)
 - `MCP_CP_GEMINI_API_KEY` — required for generate_image
 - `MCP_CP_GEMINI_MODEL` — default: gemini-3.1-flash-image-preview
+- `MCP_CP_IMAGE_OUTPUT_DIR` — directory for generated images (default: ~/Downloads)
 
 ## Testing
 

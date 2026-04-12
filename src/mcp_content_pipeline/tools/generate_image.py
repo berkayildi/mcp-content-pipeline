@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 from mcp_content_pipeline.config import Settings
 from mcp_content_pipeline.models.schemas import ImageGenerationResult, VideoAnalysis
 from mcp_content_pipeline.services.gemini_client import generate_image as _generate_image
@@ -20,8 +22,11 @@ async def generate_image(
 
     analysis = VideoAnalysis.model_validate(analysis_data)
 
+    output_dir = settings.image_output_dir or os.path.expanduser("~/Downloads")
+
     return await _generate_image(
         api_key=settings.gemini_api_key,
         model=settings.gemini_model,
         analysis=analysis,
+        output_dir=output_dir,
     )

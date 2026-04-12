@@ -72,7 +72,44 @@ class TestBuildImagePrompt:
 
 class TestGenerateImage:
     @pytest.mark.asyncio
-    async def test_generate_image_success(self, analysis):
+    async def test_generate_image_success(self, analysis, tmp_path):
+        fake_image_bytes = b"\x89PNG\r\n\x1a\nfake_image_data"
+
+        mock_part = MagicMock()
+        mock_part.inline_data = MagicMock()
+        mock_part.inline_data.data = fake_image_bytes
+
+        mock_response = MagicMock()
+        mock_response.candidates = [MagicMock()]
+        mock_response.candidates[0].content.parts = [mock_part]
+
+        mock_aio_models = MagicMock()
+        mock_aio_models.generate_content = AsyncMock(return_value=mock_response)
+
+        mock_aio = MagicMock()
+        mock_aio.models = mock_aio_models
+
+        mock_client = MagicMock()
+        mock_client.aio = mock_aio
+
+        output_dir = str(tmp_path / "images")
+        with patch("mcp_content_pipeline.services.gemini_client.genai") as mock_genai:
+            mock_genai.Client.return_value = mock_client
+            result = await generate_image("fake-key", "gemini-2.5-flash-image", analysis, output_dir=output_dir)
+
+        assert result.analysis_title == "AI News Roundup: March 2026"
+        assert result.image_path.endswith(".png")
+        assert result.image_path.startswith(output_dir)
+        assert os.path.exists(result.image_path)
+        assert result.prompt_used != ""
+
+        with open(result.image_path, "rb") as f:
+            saved_bytes = f.read()
+        assert saved_bytes == fake_image_bytes
+
+    @pytest.mark.asyncio
+    async def test_generate_image_default_output_dir(self, analysis):
+        """When output_dir is empty, defaults to ~/Downloads."""
         fake_image_bytes = b"\x89PNG\r\n\x1a\nfake_image_data"
 
         mock_part = MagicMock()
@@ -94,16 +131,11 @@ class TestGenerateImage:
 
         with patch("mcp_content_pipeline.services.gemini_client.genai") as mock_genai:
             mock_genai.Client.return_value = mock_client
-            result = await generate_image("fake-key", "gemini-2.5-flash-image", analysis)
+            result = await generate_image("fake-key", "gemini-2.5-flash-image", analysis, output_dir="")
 
-        assert result.analysis_title == "AI News Roundup: March 2026"
-        assert result.image_path.endswith(".png")
+        expected_dir = os.path.expanduser("~/Downloads")
+        assert result.image_path.startswith(expected_dir)
         assert os.path.exists(result.image_path)
-        assert result.prompt_used != ""
-
-        with open(result.image_path, "rb") as f:
-            saved_bytes = f.read()
-        assert saved_bytes == fake_image_bytes
 
         os.unlink(result.image_path)
 

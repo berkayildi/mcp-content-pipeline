@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import tempfile
 from datetime import datetime
 
 from google import genai
@@ -39,7 +38,9 @@ Requirements:
 - Comic-book panel borders separating each story"""
 
 
-async def generate_image(api_key: str, model: str, analysis: VideoAnalysis) -> ImageGenerationResult:
+async def generate_image(
+    api_key: str, model: str, analysis: VideoAnalysis, output_dir: str = "",
+) -> ImageGenerationResult:
     """Generate a comic-book infographic image from a video analysis using Gemini."""
     client = genai.Client(api_key=api_key)
     prompt = build_image_prompt(analysis)
@@ -67,10 +68,12 @@ async def generate_image(api_key: str, model: str, analysis: VideoAnalysis) -> I
     if image_data is None:
         raise RuntimeError("Gemini API returned no image data")
 
-    temp_dir = tempfile.gettempdir()
+    if not output_dir:
+        output_dir = os.path.expanduser("~/Downloads")
+    os.makedirs(output_dir, exist_ok=True)
     slug = slugify(analysis.title, max_length=80)
     date_str = datetime.now().strftime("%Y-%m-%d")
-    image_path = os.path.join(temp_dir, f"{date_str}-{slug}.png")
+    image_path = os.path.join(output_dir, f"{date_str}-{slug}.png")
 
     with open(image_path, "wb") as f:
         f.write(image_data)

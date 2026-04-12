@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     claude_model: str = "claude-sonnet-4-20250514"
     gemini_api_key: str = ""
     gemini_model: str = "gemini-3.1-flash-image-preview"
+    image_output_dir: str = ""
     max_transcript_tokens: int = 100000
     supadata_api_key: str = ""
     x_bearer_token: str = ""
