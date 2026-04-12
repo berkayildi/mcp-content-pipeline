@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.2](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.9.1...v0.9.2) (2026-04-12)
+
+
+### Bug Fixes
+
+* handle YouTube oEmbed 401 with graceful fallback ([d94df48](https://github.com/berkayildi/mcp-content-pipeline/commit/d94df484bfa6ecbba5d8a80b2c7ea17f8c5af8c2))
+* normalize YouTube live URLs for oEmbed metadata ([60068fc](https://github.com/berkayildi/mcp-content-pipeline/commit/60068fc614350ce95bc54e5b151e9777577ca49d))
+
 ## [0.9.1](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.9.0...v0.9.1) (2026-04-12)
 
 
