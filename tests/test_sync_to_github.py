@@ -6,12 +6,13 @@ import re
 
 import pytest
 
-from mcp_content_pipeline.models.schemas import VideoAnalysis
+from mcp_content_pipeline.models.schemas import VideoAnalysis, XDigestAnalysis
 from mcp_content_pipeline.services.github_client import (
     generate_filename,
     generate_image_filename,
     generate_index,
     generate_markdown,
+    generate_x_digest_index,
     parse_index_entries,
 )
 from mcp_content_pipeline.tools.sync_to_github import sync_to_github
@@ -66,8 +67,8 @@ class TestGenerateMarkdown:
 
 class TestGenerateFilename:
     def test_filename_format(self, analysis):
-        filename = generate_filename(analysis, "content/videos")
-        assert filename == "content/videos/2026-03-08-ml-in-production-3-strategies.md"
+        filename = generate_filename(analysis, "content/youtube")
+        assert filename == "content/youtube/2026-03-08-ml-in-production-3-strategies.md"
 
     def test_filename_slugification(self):
         a = VideoAnalysis(
@@ -104,15 +105,15 @@ class TestGenerateFilename:
 
 class TestGenerateIndex:
     def test_index_contains_header(self, analysis):
-        index = generate_index([analysis], "content/videos")
-        assert "# Video Analyses Index" in index
+        index = generate_index([analysis], "content/youtube")
+        assert "# YouTube Analyses" in index
 
     def test_index_contains_table_headers(self, analysis):
-        index = generate_index([analysis], "content/videos")
+        index = generate_index([analysis], "content/youtube")
         assert "| Date | Title | File |" in index
 
     def test_index_contains_entry(self, analysis):
-        index = generate_index([analysis], "content/videos")
+        index = generate_index([analysis], "content/youtube")
         assert "ML in Production: 3 Strategies" in index
         assert "2026-03-08" in index
 
@@ -137,13 +138,13 @@ class TestGenerateIndex:
             twitter_hook="h",
             topics=["t"],
         )
-        index = generate_index([a1, a2], "content/videos")
+        index = generate_index([a1, a2], "content/youtube")
         lines = [line for line in index.split("\n") if line.startswith("| 2026")]
         assert len(lines) == 2
 
     def test_index_empty_list(self):
-        index = generate_index([], "content/videos")
-        assert "# Video Analyses Index" in index
+        index = generate_index([], "content/youtube")
+        assert "# YouTube Analyses" in index
 
 
 class TestIndexMergeBehavior:
@@ -163,20 +164,20 @@ class TestIndexMergeBehavior:
 
     def test_existing_entries_preserved(self):
         existing_index = (
-            "# Video Analyses Index\n\n"
+            "# YouTube Analyses\n\n"
             "| Date | Title | File |\n"
             "|------|-------|------|\n"
             "| 2026-03-01 | Old Video | [2026-03-01-old-video.md](./2026-03-01-old-video.md) |\n"
         )
         new_analysis = self._make_analysis("New Video", "2026-03-10T12:00:00")
-        index = generate_index([new_analysis], "content/videos", existing_index)
+        index = generate_index([new_analysis], "content/youtube", existing_index)
 
         assert "Old Video" in index
         assert "New Video" in index
 
     def test_duplicates_deduplicated(self):
         existing_index = (
-            "# Video Analyses Index\n\n"
+            "# YouTube Analyses\n\n"
             "| Date | Title | File |\n"
             "|------|-------|------|\n"
             "| 2026-03-08 | ML in Production: 3 Strategies | "
@@ -187,7 +188,7 @@ class TestIndexMergeBehavior:
         dup_analysis = self._make_analysis(
             "ML in Production: 3 Strategies", "2026-03-08T12:00:00"
         )
-        index = generate_index([dup_analysis], "content/videos", existing_index)
+        index = generate_index([dup_analysis], "content/youtube", existing_index)
 
         data_rows = [
             line for line in index.split("\n") if line.startswith("|") and "Date" not in line and "---" not in line
@@ -196,14 +197,14 @@ class TestIndexMergeBehavior:
 
     def test_new_entries_added(self):
         existing_index = (
-            "# Video Analyses Index\n\n"
+            "# YouTube Analyses\n\n"
             "| Date | Title | File |\n"
             "|------|-------|------|\n"
             "| 2026-03-01 | First | [2026-03-01-first.md](./2026-03-01-first.md) |\n"
         )
         a1 = self._make_analysis("Second", "2026-03-05T12:00:00")
         a2 = self._make_analysis("Third", "2026-03-10T12:00:00")
-        index = generate_index([a1, a2], "content/videos", existing_index)
+        index = generate_index([a1, a2], "content/youtube", existing_index)
 
         assert "First" in index
         assert "Second" in index
@@ -215,14 +216,14 @@ class TestIndexMergeBehavior:
 
     def test_sorted_by_date_descending(self):
         existing_index = (
-            "# Video Analyses Index\n\n"
+            "# YouTube Analyses\n\n"
             "| Date | Title | File |\n"
             "|------|-------|------|\n"
             "| 2026-03-01 | Oldest | [2026-03-01-oldest.md](./2026-03-01-oldest.md) |\n"
         )
         middle = self._make_analysis("Middle", "2026-03-05T12:00:00")
         newest = self._make_analysis("Newest", "2026-03-10T12:00:00")
-        index = generate_index([middle, newest], "content/videos", existing_index)
+        index = generate_index([middle, newest], "content/youtube", existing_index)
 
         data_rows = [
             line for line in index.split("\n") if line.startswith("|") and "Date" not in line and "---" not in line
@@ -235,7 +236,7 @@ class TestIndexMergeBehavior:
     def test_no_existing_index(self):
         """When there's no existing index, behaves like before."""
         analysis = self._make_analysis("Only Video", "2026-03-08T12:00:00")
-        index = generate_index([analysis], "content/videos", None)
+        index = generate_index([analysis], "content/youtube", None)
 
         assert "Only Video" in index
         data_rows = [
@@ -245,7 +246,7 @@ class TestIndexMergeBehavior:
 
     def test_parse_index_entries(self):
         content = (
-            "# Video Analyses Index\n\n"
+            "# YouTube Analyses\n\n"
             "| Date | Title | File |\n"
             "|------|-------|------|\n"
             "| 2026-03-01 | Vid A | [2026-03-01-vid-a.md](./2026-03-01-vid-a.md) |\n"
@@ -274,13 +275,13 @@ class TestPipeEscaping:
 
     def test_pipe_in_title_escaped_in_index(self):
         analysis = self._make_analysis("React | Vue | Angular", "2026-03-08T12:00:00")
-        index = generate_index([analysis], "content/videos")
+        index = generate_index([analysis], "content/youtube")
         # The title should have escaped pipes so the table isn't broken
         assert r"React \| Vue \| Angular" in index
 
     def test_pipe_in_title_table_columns_intact(self):
         analysis = self._make_analysis("A | B", "2026-03-08T12:00:00")
-        index = generate_index([analysis], "content/videos")
+        index = generate_index([analysis], "content/youtube")
         # Table rows should still have exactly 4 real column separators (leading, 3 between, trailing)
         data_rows = [
             line for line in index.split("\n")
@@ -294,7 +295,7 @@ class TestPipeEscaping:
 
     def test_parse_index_entries_with_escaped_pipes(self):
         content = (
-            "# Video Analyses Index\n\n"
+            "# YouTube Analyses\n\n"
             "| Date | Title | File |\n"
             "|------|-------|------|\n"
             r"| 2026-03-08 | React \| Vue | [2026-03-08-react-vue.md](./2026-03-08-react-vue.md) |"
@@ -306,9 +307,9 @@ class TestPipeEscaping:
     def test_roundtrip_pipe_in_title(self):
         """Generate index, parse it back, then merge — should not duplicate."""
         analysis = self._make_analysis("Foo | Bar", "2026-03-08T12:00:00")
-        index = generate_index([analysis], "content/videos")
+        index = generate_index([analysis], "content/youtube")
         # Parse and re-generate with the same analysis
-        index2 = generate_index([analysis], "content/videos", index)
+        index2 = generate_index([analysis], "content/youtube", index)
         data_rows = [
             line for line in index2.split("\n")
             if line.startswith("|") and "Date" not in line and "---" not in line
@@ -318,12 +319,12 @@ class TestPipeEscaping:
 
 class TestGenerateImageFilename:
     def test_image_filename_format(self, analysis):
-        filename = generate_image_filename(analysis, "content/videos")
-        assert filename == "content/videos/2026-03-08-ml-in-production-3-strategies.png"
+        filename = generate_image_filename(analysis, "content/youtube")
+        assert filename == "content/youtube/2026-03-08-ml-in-production-3-strategies.png"
 
     def test_image_filename_matches_markdown_pattern(self, analysis):
-        md_filename = generate_filename(analysis, "content/videos")
-        img_filename = generate_image_filename(analysis, "content/videos")
+        md_filename = generate_filename(analysis, "content/youtube")
+        img_filename = generate_image_filename(analysis, "content/youtube")
         # Same date-slug, different extension
         assert md_filename.replace(".md", "") == img_filename.replace(".png", "")
 
@@ -348,7 +349,7 @@ class TestSyncImagesToGithub:
                 token="token",
                 repo_name="owner/repo",
                 branch="main",
-                output_dir="content/videos",
+                output_dir="content/youtube",
                 analyses=[analysis],
                 commit_message="test",
                 images=[(analysis, b"\x89PNGfakedata")],
@@ -380,7 +381,7 @@ class TestSyncImagesToGithub:
                 token="token",
                 repo_name="owner/repo",
                 branch="main",
-                output_dir="content/videos",
+                output_dir="content/youtube",
                 analyses=[analysis],
                 commit_message="test",
                 images=[(analysis, png_bytes)],
@@ -413,7 +414,7 @@ class TestSyncImagesToGithub:
                 token="token",
                 repo_name="owner/repo",
                 branch="main",
-                output_dir="content/videos",
+                output_dir="content/youtube",
                 analyses=[analysis],
                 commit_message="test",
             )
@@ -488,3 +489,155 @@ class TestSyncToGithub:
         )
         with pytest.raises(ValueError, match="GitHub repo not configured"):
             await sync_to_github(analyses=[analysis], settings=settings)
+
+
+class TestGenerateXDigestIndex:
+    def _make_digest(self, title: str, date: str, accounts: list[str] | None = None) -> XDigestAnalysis:
+        return XDigestAnalysis(
+            title=title,
+            date_analysed=date,
+            accounts=accounts or ["karpathy", "bcherny"],
+            topics=["AI"],
+            key_takeaways=["t"],
+            tldr="s",
+            twitter_hook="h",
+            post_count=5,
+        )
+
+    def test_index_contains_header(self):
+        digest = self._make_digest("Daily Digest", "2026-03-08T12:00:00")
+        index = generate_x_digest_index([digest], "content/x-digest")
+        assert "# X Feed Digests" in index
+
+    def test_index_contains_table_headers(self):
+        digest = self._make_digest("Daily Digest", "2026-03-08T12:00:00")
+        index = generate_x_digest_index([digest], "content/x-digest")
+        assert "| Date | Title | Accounts | File |" in index
+
+    def test_index_contains_entry(self):
+        digest = self._make_digest("Daily Digest", "2026-03-08T12:00:00")
+        index = generate_x_digest_index([digest], "content/x-digest")
+        assert "Daily Digest" in index
+        assert "2026-03-08" in index
+        assert "karpathy, bcherny" in index
+
+    def test_existing_entries_preserved(self):
+        existing_index = (
+            "# X Feed Digests\n\n"
+            "| Date | Title | Accounts | File |\n"
+            "|------|-------|----------|------|\n"
+            "| 2026-03-01 | Old Digest | karpathy | [2026-03-01-x-digest.md](./2026-03-01-x-digest.md) |\n"
+        )
+        new_digest = self._make_digest("New Digest", "2026-03-10T12:00:00")
+        index = generate_x_digest_index([new_digest], "content/x-digest", existing_index)
+        assert "Old Digest" in index
+        assert "New Digest" in index
+
+    def test_sorted_by_date_descending(self):
+        existing_index = (
+            "# X Feed Digests\n\n"
+            "| Date | Title | Accounts | File |\n"
+            "|------|-------|----------|------|\n"
+            "| 2026-03-01 | Oldest | karpathy | [2026-03-01-x-digest.md](./2026-03-01-x-digest.md) |\n"
+        )
+        newest = self._make_digest("Newest", "2026-03-10T12:00:00")
+        index = generate_x_digest_index([newest], "content/x-digest", existing_index)
+        data_rows = [
+            line for line in index.split("\n") if line.startswith("|") and "Date" not in line and "---" not in line
+        ]
+        assert len(data_rows) == 2
+        assert "Newest" in data_rows[0]
+        assert "Oldest" in data_rows[1]
+
+    def test_empty_list(self):
+        index = generate_x_digest_index([], "content/x-digest")
+        assert "# X Feed Digests" in index
+
+
+class TestSyncSeparateDirectories:
+    """Tests that YouTube content and X digests go to separate directories."""
+
+    @pytest.mark.asyncio
+    async def test_youtube_goes_to_youtube_dir(self):
+        from unittest.mock import MagicMock, patch
+
+        from github import GithubException
+
+        mock_repo = MagicMock()
+        mock_repo.get_contents.side_effect = GithubException(404, "Not found", None)
+        mock_create_result = {"commit": MagicMock(sha="abc123")}
+        mock_repo.create_file.return_value = mock_create_result
+
+        analysis = VideoAnalysis(
+            title="Test Video",
+            channel="C",
+            url="https://youtube.com/watch?v=1",
+            date_analysed="2026-03-08T12:00:00",
+            key_takeaways=["t"],
+            tldr="s",
+            twitter_hook="h",
+            topics=["t"],
+        )
+
+        with patch("mcp_content_pipeline.services.github_client.Github") as mock_github:
+            mock_github.return_value.get_repo.return_value = mock_repo
+            from mcp_content_pipeline.services.github_client import sync_to_github as _sync_gh
+
+            result = await _sync_gh(
+                token="token",
+                repo_name="owner/repo",
+                branch="main",
+                output_dir="content/youtube",
+                analyses=[analysis],
+                commit_message="test",
+                x_output_dir="content/x-digest",
+            )
+
+        # Verify YouTube files go to content/youtube/
+        md_calls = [c for c in mock_repo.create_file.call_args_list if c.args[0].endswith(".md")]
+        for call in md_calls:
+            assert call.args[0].startswith("content/youtube/")
+        assert result.index_path == "content/youtube/index.md"
+
+    @pytest.mark.asyncio
+    async def test_x_digest_goes_to_x_digest_dir(self):
+        from unittest.mock import MagicMock, patch
+
+        from github import GithubException
+
+        mock_repo = MagicMock()
+        mock_repo.get_contents.side_effect = GithubException(404, "Not found", None)
+        mock_create_result = {"commit": MagicMock(sha="abc123")}
+        mock_repo.create_file.return_value = mock_create_result
+
+        digest = XDigestAnalysis(
+            title="Daily Digest",
+            date_analysed="2026-03-08T12:00:00",
+            accounts=["karpathy"],
+            topics=["AI"],
+            key_takeaways=["t"],
+            tldr="s",
+            twitter_hook="h",
+            post_count=5,
+        )
+
+        with patch("mcp_content_pipeline.services.github_client.Github") as mock_github:
+            mock_github.return_value.get_repo.return_value = mock_repo
+            from mcp_content_pipeline.services.github_client import sync_to_github as _sync_gh
+
+            await _sync_gh(
+                token="token",
+                repo_name="owner/repo",
+                branch="main",
+                output_dir="content/youtube",
+                analyses=[],
+                commit_message="test",
+                x_digests=[digest],
+                x_output_dir="content/x-digest",
+            )
+
+        # Verify X digest files go to content/x-digest/
+        x_calls = [c for c in mock_repo.create_file.call_args_list if "x-digest" in c.args[0]]
+        assert len(x_calls) >= 1
+        for call in x_calls:
+            assert call.args[0].startswith("content/x-digest/")

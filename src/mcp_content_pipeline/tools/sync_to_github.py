@@ -42,4 +42,5 @@ async def sync_to_github(
         commit_message=commit_message,
         images=images,
         x_digests=x_digests,
+        x_output_dir=settings.github_x_output_dir,
     )

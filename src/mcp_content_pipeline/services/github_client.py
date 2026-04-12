@@ -159,10 +159,50 @@ def generate_index(
     sorted_rows = sorted(entries.values(), key=_extract_date_from_row, reverse=True)
 
     lines = [
-        "# Video Analyses Index",
+        "# YouTube Analyses",
         "",
         "| Date | Title | File |",
         "|------|-------|------|",
+        *sorted_rows,
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def generate_x_digest_index(
+    digests: list[XDigestAnalysis],
+    output_dir: str,
+    existing_index_content: str | None = None,
+) -> str:
+    """Generate an index.md listing all X digest analyses as a table.
+
+    If existing_index_content is provided, merges new digests with existing
+    entries (deduplicating by filename) and sorts by date descending.
+    """
+    entries: dict[str, str] = {}
+    if existing_index_content:
+        entries = parse_index_entries(existing_index_content)
+
+    for digest in digests:
+        filename = generate_x_digest_filename(digest, output_dir)
+        basename = filename.split("/")[-1]
+        try:
+            date_str = datetime.fromisoformat(digest.date_analysed).strftime("%Y-%m-%d")
+        except (ValueError, TypeError):
+            date_str = "Unknown"
+        escaped_title = digest.title.replace("|", r"\|")
+        escaped_basename = basename.replace("|", r"\|")
+        accounts = ", ".join(digest.accounts).replace("|", r"\|")
+        row = f"| {date_str} | {escaped_title} | {accounts} | [{escaped_basename}](./{escaped_basename}) |"
+        entries[basename] = row
+
+    sorted_rows = sorted(entries.values(), key=_extract_date_from_row, reverse=True)
+
+    lines = [
+        "# X Feed Digests",
+        "",
+        "| Date | Title | Accounts | File |",
+        "|------|-------|----------|------|",
         *sorted_rows,
         "",
     ]
@@ -216,6 +256,7 @@ async def sync_to_github(
     commit_message: str = "Add video analyses",
     images: list[tuple[VideoAnalysis, bytes]] | None = None,
     x_digests: list[XDigestAnalysis] | None = None,
+    x_output_dir: str | None = None,
 ) -> SyncResult:
     """Push analysis markdown files to GitHub."""
     g = Github(token)
@@ -241,9 +282,10 @@ async def sync_to_github(
             repo.create_file(filepath, commit_message, content, branch=branch)
             file_results.append(SyncFileResult(path=filepath, action="created"))
 
-    # Sync X digest files
+    # Sync X digest files to separate directory
+    x_dir = x_output_dir or output_dir
     for digest in x_digests or []:
-        filepath = generate_x_digest_filename(digest, output_dir)
+        filepath = generate_x_digest_filename(digest, x_dir)
         content = generate_x_digest_markdown(digest)
 
         try:
@@ -259,6 +301,37 @@ async def sync_to_github(
         except GithubException:
             repo.create_file(filepath, commit_message, content, branch=branch)
             file_results.append(SyncFileResult(path=filepath, action="created"))
+
+    # Update X digest index.md if there are digests
+    if x_digests:
+        x_index_path = f"{x_dir}/index.md"
+        existing_x_index_content: str | None = None
+        existing_x_index_sha: str | None = None
+
+        try:
+            existing_x_index = repo.get_contents(x_index_path, ref=branch)
+            existing_x_index_content = existing_x_index.decoded_content.decode()  # type: ignore[union-attr]
+            existing_x_index_sha = existing_x_index.sha  # type: ignore[union-attr]
+        except GithubException:
+            pass
+
+        x_index_content = generate_x_digest_index(x_digests, x_dir, existing_x_index_content)
+
+        if existing_x_index_sha:
+            repo.update_file(
+                x_index_path,
+                f"{commit_message} (update x-digest index)",
+                x_index_content,
+                existing_x_index_sha,
+                branch=branch,
+            )
+        else:
+            repo.create_file(
+                x_index_path,
+                f"{commit_message} (update x-digest index)",
+                x_index_content,
+                branch=branch,
+            )
 
     # Update index.md — read existing content first to preserve previous entries
     index_path = f"{output_dir}/index.md"
