@@ -20,10 +20,14 @@ mcp = FastMCP("mcp-content-pipeline")
 
 @mcp.tool()
 async def analyse_video(url: str, custom_prompt: str | None = None) -> str:
-    """Analyse a single YouTube video — extracts transcript, generates key takeaways, TLDR, and Twitter/X hook draft.
+    """Analyse a single YouTube video — extracts transcript, generates key takeaways, TLDR, and social hook.
+
+    Use this tool when the user provides a YouTube URL or asks to analyse a
+    YouTube video. Supports youtube.com/watch, youtu.be, youtube.com/shorts,
+    and youtube.com/live URLs. Works with videos in any language.
 
     Args:
-        url: YouTube video URL (supports youtube.com/watch?v=, youtu.be/, youtube.com/shorts/)
+        url: YouTube video URL
         custom_prompt: Additional analysis instructions (optional)
     """
     settings = get_settings()
@@ -69,13 +73,13 @@ async def list_channel_videos(
 
 @mcp.tool()
 async def generate_image(analysis: dict) -> str:
-    """Generate a comic-book style infographic image from a video analysis result.
+    """Generate a comic-book style infographic image from a video analysis or X digest result.
 
-    Saves the image to a local temp file and returns the path. Use the path
-    when calling sync_to_github with images.
+    Creates a visual summary with bold colours, panel divisions, and text labels.
+    Use after analyse_video or analyse_x_feed to create a shareable infographic.
 
     Args:
-        analysis: Analysis result object from analyse_video or batch_analyse
+        analysis: Analysis result object from analyse_video, batch_analyse, or converted X digest
     """
     settings = get_settings()
     result = await _generate_image(analysis_data=analysis, settings=settings)
@@ -88,12 +92,17 @@ async def analyse_x_feed(
     topics: list[str] | None = None,
     hours_back: int = 24,
 ) -> str:
-    """Analyse recent posts from curated X accounts — generates key takeaways, TLDR, and social hook.
+    """Analyse recent X (Twitter) posts and tweets from specified accounts or configured defaults.
+
+    Fetches posts from X/Twitter user timelines, filters by topic, and generates
+    a digest with key takeaways, TLDR, social hook, and notable posts. Use this
+    tool when the user asks about X posts, tweets, Twitter feed, what someone
+    posted on X, or wants a digest of X/Twitter activity.
 
     Args:
-        usernames: X usernames to analyse (defaults to configured accounts)
-        topics: Topics to focus on (defaults to configured topics)
-        hours_back: How far back to fetch posts (default: 24)
+        usernames: X/Twitter usernames to analyse (defaults to configured MCP_CP_X_ACCOUNTS)
+        topics: Topics to focus on (defaults to configured MCP_CP_X_TOPICS)
+        hours_back: How far back to fetch posts (default: 24, use 168 for weekly)
     """
     settings = get_settings()
     result = await _analyse_x_feed(
@@ -113,6 +122,9 @@ async def sync_to_github(
     x_digests: list[dict] | None = None,
 ) -> str:
     """Push analysed content as markdown files to a GitHub repository.
+
+    Syncs video analyses, X feed digests, and images to a configured GitHub repo.
+    Use after analyse_video, analyse_x_feed, or generate_image to persist results.
 
     Args:
         analyses: List of analysis result objects from analyse_video or batch_analyse

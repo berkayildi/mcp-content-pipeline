@@ -5,11 +5,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/pypi/pyversions/mcp-content-pipeline)](https://pypi.org/project/mcp-content-pipeline/)
 
-A YouTube video analysis and X feed digest pipeline exposed as [MCP](https://modelcontextprotocol.io/) tools. Extract transcripts, generate key takeaways, TLDRs, and Twitter/X hook drafts — plus daily X feed digests from curated accounts — all callable by any MCP-compatible AI client like Claude Desktop.
+A content analysis and digest pipeline for YouTube videos and X (Twitter) feeds, exposed as [MCP](https://modelcontextprotocol.io/) tools. Extract transcripts, fetch posts from curated accounts, and generate key takeaways, TLDRs, social hooks, and comic-book infographics — all callable by any MCP-compatible AI client like Claude Desktop.
 
 ## Why?
 
-Manually copying YouTube transcripts into AI tools, crafting prompts, and formatting output is tedious and error-prone. This MCP server turns the entire workflow into chainable tools that any AI agent can call. List videos from a channel, analyse them in batch, and sync the results to GitHub — all in a single conversation.
+Keeping up with YouTube channels and X accounts means scattered tabs, manual note-taking, and lost insights. This MCP server turns content consumption into structured, chainable tools. Analyse a Bloomberg video, digest your X feed, generate infographics, and sync everything to GitHub — all from a single conversation with Claude.
 
 ## Quick Start
 
@@ -36,6 +36,7 @@ Add to your Claude Desktop MCP config (`~/Library/Application Support/Claude/cla
       "args": ["mcp-content-pipeline"],
       "env": {
         "MCP_CP_ANTHROPIC_API_KEY": "sk-ant-...",
+        "MCP_CP_SUPADATA_API_KEY": "sd_...",
         "MCP_CP_GITHUB_TOKEN": "ghp_...",
         "MCP_CP_GITHUB_REPO": "your-username/your-repo",
         "MCP_CP_GEMINI_API_KEY": "your-gemini-api-key",
@@ -50,62 +51,55 @@ Add to your Claude Desktop MCP config (`~/Library/Application Support/Claude/cla
 
 ## Usage
 
-Once configured in Claude Desktop, chain the tools in a single conversation:
+Once configured in Claude Desktop, use the tools in a single conversation:
 
-**Step 1 — Analyse**
-
+**YouTube Analysis**
 > "Analyse this video: https://www.youtube.com/watch?v=..."
-
-**Step 2 — Generate image**
-
 > "Generate an image for this analysis"
-
-**Step 3 — Sync to GitHub**
-
 > "Sync the analysis and image to GitHub"
 
-Or do it all in one prompt:
-
+Or all in one prompt:
 > "Analyse this video, generate the image, and sync to GitHub: https://www.youtube.com/watch?v=..."
 
 **X Feed Digest**
-
+> "Analyse the X feed"
 > "Analyse what karpathy, garrytan, and elvissun posted about AI today"
+> "Analyse the top posts from the last week"
 
 Or with the full pipeline:
-
 > "Analyse the X feed, generate the image, and sync to GitHub"
 
 ## Tools
 
-| Tool                  | Description                                                                | Requires                      |
-| --------------------- | -------------------------------------------------------------------------- | ----------------------------- |
-| `analyse_video`       | Analyse a single YouTube video — transcript, takeaways, TLDR, Twitter hook | `ANTHROPIC_API_KEY`           |
-| `batch_analyse`       | Analyse multiple videos from a URL list or config file                     | `ANTHROPIC_API_KEY`           |
-| `list_channel_videos` | Fetch recent videos from a YouTube channel                                 | `YOUTUBE_API_KEY`             |
-| `sync_to_github`      | Push analyses as markdown files to a GitHub repo                           | `GITHUB_TOKEN`, `GITHUB_REPO` |
-| `analyse_x_feed`      | Analyse recent posts from curated X accounts — daily digest                | `X_BEARER_TOKEN`              |
-| `generate_image`      | Generate comic-book infographic from analysis result                       | `GEMINI_API_KEY`              |
+| Tool                  | Description                                                                | Requires                             |
+| --------------------- | -------------------------------------------------------------------------- | ------------------------------------ |
+| `analyse_video`       | Analyse a single YouTube video — transcript, takeaways, TLDR, social hook  | `ANTHROPIC_API_KEY`, `SUPADATA_API_KEY` |
+| `batch_analyse`       | Analyse multiple videos from a URL list or config file                     | `ANTHROPIC_API_KEY`, `SUPADATA_API_KEY` |
+| `list_channel_videos` | Fetch recent videos from a YouTube channel                                 | `YOUTUBE_API_KEY`                    |
+| `sync_to_github`      | Push analyses as markdown files to a GitHub repo                           | `GITHUB_TOKEN`, `GITHUB_REPO`       |
+| `analyse_x_feed`      | Analyse recent posts from curated X accounts — daily digest                | `X_BEARER_TOKEN`                     |
+| `generate_image`      | Generate comic-book infographic from analysis result                       | `GEMINI_API_KEY`                     |
 
 ## Environment Variables
 
 All prefixed with `MCP_CP_`:
 
-| Variable                       | Required     | Description                                                         |
-| ------------------------------ | ------------ | ------------------------------------------------------------------- |
-| `MCP_CP_ANTHROPIC_API_KEY`     | Yes          | Anthropic API key for Claude analysis                               |
-| `MCP_CP_YOUTUBE_API_KEY`       | No           | YouTube Data API v3 key (only for `list_channel_videos`)            |
-| `MCP_CP_GITHUB_TOKEN`          | For sync     | GitHub personal access token                                        |
-| `MCP_CP_GITHUB_REPO`           | For sync     | Target repo in `owner/repo` format                                  |
-| `MCP_CP_GITHUB_BRANCH`         | No           | Branch to push to (default: `main`)                                 |
-| `MCP_CP_GITHUB_OUTPUT_DIR`     | No           | Output directory in repo (default: `content/videos`)                |
-| `MCP_CP_CLAUDE_MODEL`          | No           | Claude model to use (default: `claude-sonnet-4-20250514`)           |
-| `MCP_CP_MAX_TRANSCRIPT_TOKENS` | No           | Max transcript length in tokens (default: `100000`)                 |
-| `MCP_CP_GEMINI_API_KEY`        | For image    | Google AI Studio API key for image generation                       |
-| `MCP_CP_GEMINI_MODEL`          | No           | Gemini model for images (default: `gemini-3.1-flash-image-preview`) |
-| `MCP_CP_X_BEARER_TOKEN`        | For X digest | X API v2 bearer token                                               |
-| `MCP_CP_X_ACCOUNTS`            | For X digest | Comma-separated X usernames                                         |
-| `MCP_CP_X_TOPICS`              | No           | Comma-separated topics (default: AI,tech)                           |
+| Variable                       | Required         | Description                                                         |
+| ------------------------------ | ---------------- | ------------------------------------------------------------------- |
+| `MCP_CP_ANTHROPIC_API_KEY`     | Yes              | Anthropic API key for Claude analysis                               |
+| `MCP_CP_SUPADATA_API_KEY`      | Yes for YouTube  | Supadata API key for YouTube transcript extraction                  |
+| `MCP_CP_YOUTUBE_API_KEY`       | No               | YouTube Data API v3 key (only for `list_channel_videos`)            |
+| `MCP_CP_GITHUB_TOKEN`          | For sync         | GitHub personal access token                                        |
+| `MCP_CP_GITHUB_REPO`           | For sync         | Target repo in `owner/repo` format                                  |
+| `MCP_CP_GITHUB_BRANCH`         | No               | Branch to push to (default: `main`)                                 |
+| `MCP_CP_GITHUB_OUTPUT_DIR`     | No               | Output directory in repo (default: `content/videos`)                |
+| `MCP_CP_CLAUDE_MODEL`          | No               | Claude model to use (default: `claude-sonnet-4-20250514`)           |
+| `MCP_CP_MAX_TRANSCRIPT_TOKENS` | No               | Max transcript length in tokens (default: `100000`)                 |
+| `MCP_CP_GEMINI_API_KEY`        | For image        | Google AI Studio API key for image generation                       |
+| `MCP_CP_GEMINI_MODEL`          | No               | Gemini model for images (default: `gemini-3.1-flash-image-preview`) |
+| `MCP_CP_X_BEARER_TOKEN`        | For X digest     | X API v2 bearer token                                               |
+| `MCP_CP_X_ACCOUNTS`            | For X digest     | Comma-separated X usernames                                         |
+| `MCP_CP_X_TOPICS`              | No               | Comma-separated topics (default: AI,tech)                           |
 
 ## Cost Projections
 
