@@ -53,7 +53,7 @@ class TestAnalyseVideo:
             patch(
                 "mcp_content_pipeline.tools.analyse_video.fetch_transcript",
                 new_callable=AsyncMock,
-                return_value=(sample_transcript, "en"),
+                return_value=(sample_transcript, "en", None),
             ),
             patch(
                 "mcp_content_pipeline.tools.analyse_video.fetch_video_metadata",
@@ -81,7 +81,7 @@ class TestAnalyseVideo:
             patch(
                 "mcp_content_pipeline.tools.analyse_video.fetch_transcript",
                 new_callable=AsyncMock,
-                return_value=(sample_transcript, "en"),
+                return_value=(sample_transcript, "en", None),
             ),
             patch(
                 "mcp_content_pipeline.tools.analyse_video.fetch_video_metadata",
@@ -109,7 +109,7 @@ class TestAnalyseVideo:
             patch(
                 "mcp_content_pipeline.tools.analyse_video.fetch_transcript",
                 new_callable=AsyncMock,
-                return_value=(sample_transcript, "tr"),
+                return_value=(sample_transcript, "tr", None),
             ),
             patch(
                 "mcp_content_pipeline.tools.analyse_video.fetch_video_metadata",

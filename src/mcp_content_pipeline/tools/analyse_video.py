@@ -22,10 +22,13 @@ async def analyse_video(
         raise ValueError("MCP_CP_SUPADATA_API_KEY is required for YouTube video analysis")
 
     video_id = parse_video_id(url)
-    transcript_text, transcript_lang = await fetch_transcript(
+    transcript_text, transcript_lang, supadata_title = await fetch_transcript(
         url, settings.max_transcript_tokens, settings.supadata_api_key
     )
     metadata = await fetch_video_metadata(video_id)
+
+    if supadata_title and metadata.get("title") == "Unknown Title":
+        metadata["title"] = supadata_title
 
     analysis = await analyse_transcript(
         api_key=settings.anthropic_api_key,

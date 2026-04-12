@@ -25,10 +25,10 @@ def parse_video_id(url: str) -> str:
 
 async def fetch_transcript(
     url: str, max_tokens: int = 100000, supadata_api_key: str = ""
-) -> tuple[str, str]:
+) -> tuple[str, str, str | None]:
     """Fetch transcript for a YouTube video via Supadata API.
 
-    Returns a tuple of (transcript_text, language_code).
+    Returns a tuple of (transcript_text, language_code, title_or_none).
     """
     if not supadata_api_key:
         raise ValueError("Supadata API key is required for transcript extraction")
@@ -46,7 +46,8 @@ async def fetch_transcript(
         if resp.status_code == 200:
             text = resp.text.strip()
             if text:
-                return _truncate(text, max_tokens), "en"
+                title = _extract_title(resp)
+                return _truncate(text, max_tokens), "en", title
 
         # Step 2: Check available languages from response
         if resp.status_code in (200, 206):
@@ -62,7 +63,8 @@ async def fetch_transcript(
                     if resp2.status_code == 200:
                         text = resp2.text.strip()
                         if text:
-                            return _truncate(text, max_tokens), lang
+                            title = _extract_title(resp2)
+                            return _truncate(text, max_tokens), lang, title
             except Exception:
                 pass
 
@@ -76,9 +78,21 @@ async def fetch_transcript(
             if resp3.status_code == 200:
                 text = resp3.text.strip()
                 if text:
-                    return _truncate(text, max_tokens), lang
+                    title = _extract_title(resp3)
+                    return _truncate(text, max_tokens), lang, title
 
     raise ValueError(f"No transcript available for: {url}")
+
+
+def _extract_title(resp: httpx.Response) -> str | None:
+    """Try to extract a title field from a Supadata JSON response."""
+    try:
+        data = resp.json()
+        if isinstance(data, dict):
+            return data.get("title") or None
+    except Exception:
+        return None
+    return None
 
 
 def _truncate(text: str, max_tokens: int) -> str:
@@ -104,6 +118,12 @@ async def fetch_video_metadata(video_id_or_url: str) -> dict:
     url = f"https://www.youtube.com/oembed?url={watch_url}&format=json"
     async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
         resp = await client.get(url)
+        if resp.status_code in (401, 403):
+            return {
+                "title": "Unknown Title",
+                "channel": "Unknown Channel",
+                "url": f"https://www.youtube.com/watch?v={video_id}",
+            }
         resp.raise_for_status()
         data = resp.json()
 
