@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.9.2...v0.10.0) (2026-04-12)
+
+
+### Features
+
+* add configurable image output directory ([0f8f651](https://github.com/berkayildi/mcp-content-pipeline/commit/0f8f6516d921beddcb351adcead30edeccdb3b74))
+* separate YouTube and X digest into distinct GitHub directories ([6da3d54](https://github.com/berkayildi/mcp-content-pipeline/commit/6da3d5494bdc8f2b51750f0ab2376e70836e0414))
+
 ## [0.9.2](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.9.1...v0.9.2) (2026-04-12)
 
 
