@@ -1,14 +1,12 @@
-"""Tests for the transcript service."""
+"""Tests for the transcript service (Supadata API)."""
 
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from youtube_transcript_api._errors import NoTranscriptFound, YouTubeTranscriptApiException
 
 from mcp_content_pipeline.services.transcript import (
-    _build_ytt_api,
     fetch_transcript,
     fetch_video_metadata,
     parse_video_id,
@@ -18,86 +16,139 @@ from mcp_content_pipeline.services.transcript import (
 class TestFetchTranscript:
     @pytest.mark.asyncio
     async def test_fetch_transcript_english(self):
-        mock_transcript = MagicMock()
-        mock_ytt = MagicMock()
-        mock_ytt.fetch.return_value = mock_transcript
+        """Successful English transcript from Supadata."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = "Hello this is a transcript"
 
-        with patch("mcp_content_pipeline.services.transcript.YouTubeTranscriptApi") as MockApi, \
-             patch("mcp_content_pipeline.services.transcript.TextFormatter") as MockFormatter:
-            MockApi.return_value = mock_ytt
-            formatter_instance = MockFormatter.return_value
-            formatter_instance.format_transcript.return_value = "Hello this is a transcript"
+        mock_client = AsyncMock()
+        mock_client.get = AsyncMock(return_value=mock_response)
 
-            result = await fetch_transcript("dQw4w9WgXcQ")
-            assert result == "Hello this is a transcript"
-            mock_ytt.fetch.assert_called_once_with("dQw4w9WgXcQ", languages=["en", "en-US", "en-GB"])
+        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
+            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
+
+            text, lang = await fetch_transcript("https://www.youtube.com/watch?v=dQw4w9WgXcQ", supadata_api_key="test-key")
+            assert text == "Hello this is a transcript"
+            assert lang == "en"
+            mock_client.get.assert_called_once()
+            call_kwargs = mock_client.get.call_args
+            assert call_kwargs[1]["params"]["lang"] == "en"
 
     @pytest.mark.asyncio
-    async def test_fetch_transcript_fallback_generated_translation(self):
-        mock_ytt = MagicMock()
-        mock_ytt.fetch.side_effect = YouTubeTranscriptApiException("No English")
+    async def test_fetch_transcript_fallback_available_langs(self):
+        """Falls back to available languages when English returns empty."""
+        empty_response = MagicMock()
+        empty_response.status_code = 200
+        empty_response.text = ""
+        empty_response.json.return_value = {"availableLangs": ["tr", "de"]}
 
-        mock_translated = MagicMock()
-        mock_translated.fetch.return_value = MagicMock()
-        mock_generated = MagicMock()
-        mock_generated.translate.return_value = mock_translated
-        mock_ytt.list.return_value.find_generated_transcript.return_value = mock_generated
+        tr_response = MagicMock()
+        tr_response.status_code = 200
+        tr_response.text = "Turkce transkript"
 
-        with patch("mcp_content_pipeline.services.transcript.YouTubeTranscriptApi") as MockApi, \
-             patch("mcp_content_pipeline.services.transcript.TextFormatter") as MockFormatter:
-            MockApi.return_value = mock_ytt
-            formatter_instance = MockFormatter.return_value
-            formatter_instance.format_transcript.return_value = "Auto-generated transcript"
+        mock_client = AsyncMock()
+        mock_client.get = AsyncMock(side_effect=[empty_response, tr_response])
 
-            result = await fetch_transcript("dQw4w9WgXcQ")
-            assert result == "Auto-generated transcript"
-            mock_generated.translate.assert_called_once_with("en")
+        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
+            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
+
+            text, lang = await fetch_transcript("https://www.youtube.com/watch?v=test123", supadata_api_key="test-key")
+            assert text == "Turkce transkript"
+            assert lang == "tr"
+
+    @pytest.mark.asyncio
+    async def test_fetch_transcript_fallback_common_langs(self):
+        """Falls back to trying common languages when no availableLangs."""
+        empty_response = MagicMock()
+        empty_response.status_code = 200
+        empty_response.text = ""
+        empty_response.json.side_effect = Exception("not json")
+
+        fail_response = MagicMock()
+        fail_response.status_code = 404
+        fail_response.text = ""
+
+        es_response = MagicMock()
+        es_response.status_code = 200
+        es_response.text = "Transcripcion en espanol"
+
+        mock_client = AsyncMock()
+        # First call: English (empty), then tr (404), then es (success)
+        mock_client.get = AsyncMock(side_effect=[empty_response, fail_response, es_response])
+
+        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
+            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
+
+            text, lang = await fetch_transcript("https://www.youtube.com/watch?v=test123", supadata_api_key="test-key")
+            assert text == "Transcripcion en espanol"
+            assert lang == "es"
+
+    @pytest.mark.asyncio
+    async def test_fetch_transcript_no_transcript_raises(self):
+        """Raises ValueError when no transcript is available in any language."""
+        empty_response = MagicMock()
+        empty_response.status_code = 404
+        empty_response.text = ""
+
+        mock_client = AsyncMock()
+        mock_client.get = AsyncMock(return_value=empty_response)
+
+        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
+            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
+
+            with pytest.raises(ValueError, match="No transcript available"):
+                await fetch_transcript("https://www.youtube.com/watch?v=test123", supadata_api_key="test-key")
 
     @pytest.mark.asyncio
     async def test_fetch_transcript_truncation(self):
+        """Long transcripts are truncated."""
         long_text = "A" * 500000
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = long_text
 
-        mock_ytt = MagicMock()
-        mock_ytt.fetch.return_value = MagicMock()
+        mock_client = AsyncMock()
+        mock_client.get = AsyncMock(return_value=mock_response)
 
-        with patch("mcp_content_pipeline.services.transcript.YouTubeTranscriptApi") as MockApi, \
-             patch("mcp_content_pipeline.services.transcript.TextFormatter") as MockFormatter:
-            MockApi.return_value = mock_ytt
-            formatter_instance = MockFormatter.return_value
-            formatter_instance.format_transcript.return_value = long_text
+        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
+            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
 
-            result = await fetch_transcript("dQw4w9WgXcQ", max_tokens=1000)
-            assert len(result) < len(long_text)
-            assert "[Transcript truncated due to length]" in result
+            text, lang = await fetch_transcript(
+                "https://www.youtube.com/watch?v=dQw4w9WgXcQ", max_tokens=1000, supadata_api_key="test-key"
+            )
+            assert len(text) < len(long_text)
+            assert "[Transcript truncated due to length]" in text
+            assert lang == "en"
 
     @pytest.mark.asyncio
     async def test_fetch_transcript_no_truncation_needed(self):
+        """Short transcripts are not truncated."""
         short_text = "Short transcript."
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = short_text
 
-        mock_ytt = MagicMock()
-        mock_ytt.fetch.return_value = MagicMock()
+        mock_client = AsyncMock()
+        mock_client.get = AsyncMock(return_value=mock_response)
 
-        with patch("mcp_content_pipeline.services.transcript.YouTubeTranscriptApi") as MockApi, \
-             patch("mcp_content_pipeline.services.transcript.TextFormatter") as MockFormatter:
-            MockApi.return_value = mock_ytt
-            formatter_instance = MockFormatter.return_value
-            formatter_instance.format_transcript.return_value = short_text
+        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
+            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
 
-            result = await fetch_transcript("dQw4w9WgXcQ")
-            assert result == short_text
-            assert "[Transcript truncated" not in result
-
+            text, lang = await fetch_transcript("https://www.youtube.com/watch?v=dQw4w9WgXcQ", supadata_api_key="test-key")
+            assert text == short_text
+            assert "[Transcript truncated" not in text
 
     @pytest.mark.asyncio
-    async def test_fetch_transcript_non_transcript_error_propagates(self):
-        """Non-YouTubeTranscriptApiException errors should not be caught."""
-        mock_ytt = MagicMock()
-        mock_ytt.fetch.side_effect = RuntimeError("Unexpected system error")
-
-        with patch("mcp_content_pipeline.services.transcript.YouTubeTranscriptApi") as MockApi:
-            MockApi.return_value = mock_ytt
-            with pytest.raises(RuntimeError, match="Unexpected system error"):
-                await fetch_transcript("dQw4w9WgXcQ")
+    async def test_fetch_transcript_missing_api_key_raises(self):
+        """Raises ValueError when supadata_api_key is empty."""
+        with pytest.raises(ValueError, match="Supadata API key is required"):
+            await fetch_transcript("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 
 
 class TestParseVideoId:
@@ -116,112 +167,6 @@ class TestParseVideoId:
     def test_invalid_url_raises(self):
         with pytest.raises(ValueError):
             parse_video_id("https://example.com/notavideo")
-
-
-class TestFetchTranscriptFallbackChain:
-    @pytest.mark.asyncio
-    async def test_turkish_transcript_translated_to_english(self):
-        """When English is unavailable, a Turkish generated transcript is translated."""
-        mock_ytt = MagicMock()
-        mock_ytt.fetch.side_effect = YouTubeTranscriptApiException("No English")
-
-        mock_transcript_list = MagicMock()
-        mock_translated = MagicMock()
-        mock_translated.fetch.return_value = MagicMock()
-        mock_generated = MagicMock()
-        mock_generated.translate.return_value = mock_translated
-        mock_transcript_list.find_generated_transcript.return_value = mock_generated
-
-        mock_ytt.list.return_value = mock_transcript_list
-
-        with patch("mcp_content_pipeline.services.transcript.YouTubeTranscriptApi") as MockApi, \
-             patch("mcp_content_pipeline.services.transcript.TextFormatter") as MockFormatter:
-            MockApi.return_value = mock_ytt
-            MockFormatter.return_value.format_transcript.return_value = "Translated Turkish transcript"
-
-            result = await fetch_transcript("test_id")
-            assert result == "Translated Turkish transcript"
-            mock_generated.translate.assert_called_once_with("en")
-
-    @pytest.mark.asyncio
-    async def test_manually_created_transcript_fallback(self):
-        """When no generated transcript exists, falls back to manually created."""
-        mock_ytt = MagicMock()
-        mock_ytt.fetch.side_effect = YouTubeTranscriptApiException("No English")
-
-        mock_transcript_list = MagicMock()
-        mock_transcript_list.find_generated_transcript.side_effect = NoTranscriptFound(
-            "test_id", [], MagicMock()
-        )
-        mock_translated = MagicMock()
-        mock_translated.fetch.return_value = MagicMock()
-        mock_manual = MagicMock()
-        mock_manual.translate.return_value = mock_translated
-        mock_transcript_list.find_manually_created_transcript.return_value = mock_manual
-
-        mock_ytt.list.return_value = mock_transcript_list
-
-        with patch("mcp_content_pipeline.services.transcript.YouTubeTranscriptApi") as MockApi, \
-             patch("mcp_content_pipeline.services.transcript.TextFormatter") as MockFormatter:
-            MockApi.return_value = mock_ytt
-            MockFormatter.return_value.format_transcript.return_value = "Manual transcript translated"
-
-            result = await fetch_transcript("test_id")
-            assert result == "Manual transcript translated"
-            mock_manual.translate.assert_called_once_with("en")
-
-
-class TestBuildYttApi:
-    def test_without_cookies(self):
-        with patch("mcp_content_pipeline.services.transcript.YouTubeTranscriptApi") as MockApi:
-            _build_ytt_api(None)
-            MockApi.assert_called_once_with()
-
-    def test_with_cookies_file(self, tmp_path):
-        # Create a Netscape-format cookies file
-        cookies_file = tmp_path / "cookies.txt"
-        cookies_file.write_text(
-            "# Netscape HTTP Cookie File\n"
-            ".youtube.com\tTRUE\t/\tFALSE\t9999999999\tSID\tabc123\n"
-        )
-
-        with patch("mcp_content_pipeline.services.transcript.YouTubeTranscriptApi") as MockApi:
-            _build_ytt_api(str(cookies_file))
-            MockApi.assert_called_once()
-            call_kwargs = MockApi.call_args.kwargs
-            assert "http_client" in call_kwargs
-            session = call_kwargs["http_client"]
-            assert len(session.cookies) > 0
-
-    def test_with_missing_cookies_file_raises(self):
-        with pytest.raises(OSError):
-            _build_ytt_api("/nonexistent/cookies.txt")
-
-
-class TestFetchTranscriptWithCookies:
-    @pytest.mark.asyncio
-    async def test_cookies_file_passed_to_builder(self):
-        mock_ytt = MagicMock()
-        mock_ytt.fetch.return_value = MagicMock()
-
-        with patch("mcp_content_pipeline.services.transcript._build_ytt_api", return_value=mock_ytt) as mock_build, \
-             patch("mcp_content_pipeline.services.transcript.TextFormatter") as MockFormatter:
-            MockFormatter.return_value.format_transcript.return_value = "transcript text"
-
-            await fetch_transcript("dQw4w9WgXcQ", cookies_file="/path/to/cookies.txt")
-            mock_build.assert_called_once_with("/path/to/cookies.txt")
-
-    @pytest.mark.asyncio
-    async def test_no_cookies_file_by_default(self):
-        mock_ytt = MagicMock()
-        mock_ytt.fetch.return_value = MagicMock()
-
-        with patch("mcp_content_pipeline.services.transcript._build_ytt_api", return_value=mock_ytt) as mock_build, \
-             patch("mcp_content_pipeline.services.transcript.TextFormatter") as MockFormatter:
-            MockFormatter.return_value.format_transcript.return_value = "transcript text"
-
-            await fetch_transcript("dQw4w9WgXcQ")
-            mock_build.assert_called_once_with(None)
 
 
 class TestFetchVideoMetadata:

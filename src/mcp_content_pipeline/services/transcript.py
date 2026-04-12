@@ -1,31 +1,13 @@
-"""YouTube transcript extraction."""
+"""YouTube transcript extraction via Supadata API."""
 
 from __future__ import annotations
 
-import http.cookiejar
 import re
 
 import httpx
-import requests
-from youtube_transcript_api import YouTubeTranscriptApi
-from youtube_transcript_api._errors import (
-    NoTranscriptFound,
-    YouTubeTranscriptApiException,
-)
-from youtube_transcript_api.formatters import TextFormatter
 
 HTTP_TIMEOUT = 30.0
-
-
-def _build_ytt_api(cookies_file: str | None = None) -> YouTubeTranscriptApi:
-    """Build a YouTubeTranscriptApi instance, optionally with cookies."""
-    if cookies_file is None:
-        return YouTubeTranscriptApi()
-    cookie_jar = http.cookiejar.MozillaCookieJar(cookies_file)
-    cookie_jar.load()
-    session = requests.Session()
-    session.cookies = cookie_jar
-    return YouTubeTranscriptApi(http_client=session)
+COMMON_LANGS = ["tr", "es", "pt", "fr", "de", "ja", "ko", "zh", "ar", "hi"]
 
 
 def parse_video_id(url: str) -> str:
@@ -42,39 +24,68 @@ def parse_video_id(url: str) -> str:
 
 
 async def fetch_transcript(
-    video_id: str, max_tokens: int = 100000, cookies_file: str | None = None
-) -> str:
-    """Fetch transcript for a YouTube video.
+    url: str, max_tokens: int = 100000, supadata_api_key: str = ""
+) -> tuple[str, str]:
+    """Fetch transcript for a YouTube video via Supadata API.
 
-    Tries English first, then falls back to auto-generated captions.
+    Returns a tuple of (transcript_text, language_code).
     """
-    ytt_api = _build_ytt_api(cookies_file)
-    try:
-        # Step 1: Try fetching English transcript directly
-        transcript = ytt_api.fetch(video_id, languages=["en", "en-US", "en-GB"])
-    except YouTubeTranscriptApiException:
-        transcript_list = ytt_api.list(video_id)
-        try:
-            # Step 2: Try generated transcript in common languages, translate to English
-            transcript_obj = transcript_list.find_generated_transcript(
-                ["tr", "es", "fr", "de", "pt", "ja", "ko", "ar", "hi", "zh-Hans"]
-            )
-            transcript = transcript_obj.translate("en").fetch()
-        except NoTranscriptFound:
-            # Step 3: Last resort — manually created transcript, translate to English
-            transcript_obj = transcript_list.find_manually_created_transcript(
-                ["tr", "es", "fr", "de", "pt", "ja", "ko", "ar", "hi", "zh-Hans"]
-            )
-            transcript = transcript_obj.translate("en").fetch()
+    if not supadata_api_key:
+        raise ValueError("Supadata API key is required for transcript extraction")
 
-    formatter = TextFormatter()
-    text = formatter.format_transcript(transcript)
+    headers = {"x-api-key": supadata_api_key}
+    base_params = {"url": url, "text": "true", "mode": "auto"}
 
-    # Truncate if too long (rough estimate: 1 token ≈ 4 chars)
+    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
+        # Step 1: Try English
+        resp = await client.get(
+            "https://api.supadata.ai/v1/transcript",
+            headers=headers,
+            params={**base_params, "lang": "en"},
+        )
+        if resp.status_code == 200:
+            text = resp.text.strip()
+            if text:
+                return _truncate(text, max_tokens), "en"
+
+        # Step 2: Check available languages from response
+        if resp.status_code in (200, 206):
+            try:
+                data = resp.json()
+                available_langs = data.get("availableLangs", [])
+                for lang in available_langs:
+                    resp2 = await client.get(
+                        "https://api.supadata.ai/v1/transcript",
+                        headers=headers,
+                        params={**base_params, "lang": lang},
+                    )
+                    if resp2.status_code == 200:
+                        text = resp2.text.strip()
+                        if text:
+                            return _truncate(text, max_tokens), lang
+            except Exception:
+                pass
+
+        # Step 3: Try common languages directly
+        for lang in COMMON_LANGS:
+            resp3 = await client.get(
+                "https://api.supadata.ai/v1/transcript",
+                headers=headers,
+                params={**base_params, "lang": lang},
+            )
+            if resp3.status_code == 200:
+                text = resp3.text.strip()
+                if text:
+                    return _truncate(text, max_tokens), lang
+
+    raise ValueError(f"No transcript available for: {url}")
+
+
+def _truncate(text: str, max_tokens: int) -> str:
+    """Truncate transcript text to approximately max_tokens."""
     max_chars = max_tokens * 4
     if len(text) > max_chars:
-        text = text[:max_chars] + "\n\n[Transcript truncated due to length]"
-
+        return text[:max_chars] + "\n\n[Transcript truncated due to length]"
     return text
 
 

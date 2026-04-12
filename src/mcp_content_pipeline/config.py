@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_model: str = "gemini-3.1-flash-image-preview"
     max_transcript_tokens: int = 100000
-    youtube_cookies_file: str | None = None
+    supadata_api_key: str = ""
     x_bearer_token: str = ""
     x_accounts: str | list[str] = []
     x_topics: str | list[str] = []

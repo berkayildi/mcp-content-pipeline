@@ -19,7 +19,6 @@ classifiers = [
 dependencies = [
     "mcp[cli]",
     "anthropic",
-    "youtube-transcript-api",
     "google-api-python-client",
     "google-genai",
     "pygithub",

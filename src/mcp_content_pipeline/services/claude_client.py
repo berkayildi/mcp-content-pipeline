@@ -81,11 +81,15 @@ async def analyse_transcript(
     transcript: str,
     metadata: dict,
     custom_prompt: str | None = None,
+    transcript_lang: str | None = None,
 ) -> VideoAnalysis:
     """Send transcript to Claude for analysis."""
     client = anthropic.AsyncAnthropic(api_key=api_key)
 
     user_prompt = build_user_prompt(transcript, metadata, custom_prompt)
+
+    if transcript_lang and transcript_lang != "en":
+        user_prompt += f"\n\nNOTE: The transcript is in language code '{transcript_lang}'. Translate all output to English."
 
     message = await client.messages.create(
         model=model,
