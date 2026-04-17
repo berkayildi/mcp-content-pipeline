@@ -61,6 +61,6 @@ line-length = 120
 select = ["E", "F", "I", "W"]
 
 [tool.ruff.lint.per-file-ignores]
-"src/mcp_content_pipeline/services/claude_client.py" = ["E501"]
+"src/mcp_content_pipeline/services/video_digest_client.py" = ["E501"]
 "src/mcp_content_pipeline/services/x_digest_client.py" = ["E501"]
 "tests/*" = ["E501"]

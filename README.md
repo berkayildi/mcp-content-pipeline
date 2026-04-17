@@ -133,6 +133,12 @@ Estimated monthly costs for two usage patterns:
 | YouTube Premium        | ~$14/mo     | Transcript extraction via Supadata (free tier)             |
 | **Total saved**        | **~$42/mo** | **Pipeline cost: ~$3–9/mo** (plus your existing Claude plan) |
 
+## Eval Gates
+
+Prompt and model changes are automatically evaluated in CI using [mcp-llm-eval](https://github.com/berkayildi/mcp-llm-eval). The eval dataset covers both YouTube analysis and X feed digest prompts, benchmarking Claude Sonnet and Gemini 2.5 Flash on the same test cases. PRs that touch system prompts or model config trigger an evaluation run that scores faithfulness and relevance against a reference dataset. The PR is blocked if quality regresses below configured thresholds.
+
+See `.eval-gate.yml` for threshold configuration and `eval/dataset.json` for the test dataset.
+
 ## Development
 
 ```bash

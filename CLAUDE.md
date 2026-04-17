@@ -40,6 +40,17 @@ uv run pytest -v --cov=src/mcp_content_pipeline
 uv run ruff check src/ tests/
 ```
 
+## Eval Gate
+
+```bash
+# Run eval locally
+pip install mcp-llm-eval anthropic openai google-genai
+mcp-llm-eval run --config .eval-gate.yml --dataset eval/dataset.json --output-dir eval/results
+mcp-llm-eval check --results eval/results/latest_summary.json --config .eval-gate.yml
+```
+
+Triggered automatically on PRs that change prompt files or model config. Benchmarks Claude Sonnet vs Gemini 2.5 Flash.
+
 ## MCP Tools
 
 1. `analyse_video` — analyse a single YouTube video
