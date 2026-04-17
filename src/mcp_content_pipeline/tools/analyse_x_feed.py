@@ -9,7 +9,11 @@ from mcp_content_pipeline.services.x_digest_client import analyse_x_feed as _ana
 
 
 def x_digest_to_video_analysis(digest: XDigestAnalysis) -> VideoAnalysis:
-    """Convert an X digest to VideoAnalysis format for image generation compatibility."""
+    """Convert an X digest to VideoAnalysis format for image generation compatibility.
+
+    Public helper for users who want to pass X digest results to generate_image,
+    which expects the VideoAnalysis schema.
+    """
     return VideoAnalysis(
         title=digest.title,
         channel="X Feed Digest",
