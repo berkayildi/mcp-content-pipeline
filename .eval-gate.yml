@@ -10,9 +10,9 @@ models:
     input_cost_per_mtok: 3.0
     output_cost_per_mtok: 15.0
   - provider: google
-    model: gemini-3.1-pro-preview
-    input_cost_per_mtok: 1.50
-    output_cost_per_mtok: 10.0
+    model: gemini-2.5-flash-lite
+    input_cost_per_mtok: 0.075
+    output_cost_per_mtok: 0.30
 
 judge:
   provider: openai
