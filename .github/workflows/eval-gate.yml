@@ -1,0 +1,46 @@
+name: LLM Eval Gate
+
+on:
+  pull_request:
+    paths:
+      - 'src/mcp_content_pipeline/services/**'
+      - 'src/mcp_content_pipeline/tools/**'
+      - 'src/mcp_content_pipeline/config.py'
+      - 'src/mcp_content_pipeline/server.py'
+      - 'eval/**'
+      - '.eval-gate.yml'
+      - 'pyproject.toml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install eval tooling
+        run: pip install mcp-llm-eval anthropic openai google-genai
+
+      - name: Run evaluation
+        run: mcp-llm-eval run --config .eval-gate.yml --dataset eval/dataset.json --output-dir eval/results
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+
+      - name: Check thresholds
+        run: mcp-llm-eval check --results eval/results/latest_summary.json --config .eval-gate.yml
+
+      - name: Post PR comment
+        if: always()
+        run: |
+          mcp-llm-eval comment --summary eval/results/latest_summary.json --config .eval-gate.yml --output pr-comment.md
+          gh pr comment ${{ github.event.number }} --body-file pr-comment.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

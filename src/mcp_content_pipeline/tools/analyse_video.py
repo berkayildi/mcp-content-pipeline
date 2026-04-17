@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from mcp_content_pipeline.config import Settings
 from mcp_content_pipeline.models.schemas import VideoAnalysis
-from mcp_content_pipeline.services.claude_client import analyse_transcript
 from mcp_content_pipeline.services.transcript import (
     fetch_transcript,
     fetch_video_metadata,
     parse_video_id,
 )
+from mcp_content_pipeline.services.video_digest_client import analyse_transcript
 
 
 async def analyse_video(

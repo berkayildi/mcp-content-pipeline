@@ -17,6 +17,9 @@ async def batch_analyse(
 ) -> BatchAnalysisResult:
     """Analyse multiple YouTube videos from a list of URLs or config file."""
     if config_file:
+        # Path is constrained to CWD to prevent accidental reads outside the project.
+        # This is a local MCP tool: we trust the CWD and do not resolve symlinks that
+        # point outside it. A symlink within CWD pointing elsewhere will still be read.
         path = Path(config_file).resolve()
         cwd = Path.cwd().resolve()
         if not path.is_relative_to(cwd):

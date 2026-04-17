@@ -25,7 +25,10 @@ All prefixed with `MCP_CP_`:
 - `MCP_CP_SUPADATA_API_KEY` — required for YouTube transcript extraction
 - `MCP_CP_GITHUB_TOKEN` — required for sync_to_github
 - `MCP_CP_GITHUB_REPO` — format: "owner/repo"
+- `MCP_CP_GITHUB_BRANCH` — branch to push to (default: main)
+- `MCP_CP_GITHUB_OUTPUT_DIR` — output directory for YouTube analyses (default: content/youtube)
 - `MCP_CP_CLAUDE_MODEL` — default: claude-sonnet-4-20250514
+- `MCP_CP_MAX_TRANSCRIPT_TOKENS` — max transcript length in tokens (default: 100000)
 - `MCP_CP_X_BEARER_TOKEN` — required for analyse_x_feed
 - `MCP_CP_X_ACCOUNTS` — comma-separated X usernames
 - `MCP_CP_X_TOPICS` — comma-separated topics (default: AI,tech)
@@ -39,6 +42,17 @@ All prefixed with `MCP_CP_`:
 uv run pytest -v --cov=src/mcp_content_pipeline
 uv run ruff check src/ tests/
 ```
+
+## Eval Gate
+
+```bash
+# Run eval locally
+pip install mcp-llm-eval anthropic openai google-genai
+mcp-llm-eval run --config .eval-gate.yml --dataset eval/dataset.json --output-dir eval/results
+mcp-llm-eval check --results eval/results/latest_summary.json --config .eval-gate.yml
+```
+
+Triggered automatically on PRs that change prompt files or model config. Benchmarks Claude Sonnet vs Gemini 2.5 Flash.
 
 ## MCP Tools
 

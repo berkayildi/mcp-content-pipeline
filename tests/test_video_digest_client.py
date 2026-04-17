@@ -1,4 +1,4 @@
-"""Tests for the Claude client service."""
+"""Tests for the video digest client service."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from mcp_content_pipeline.models.schemas import VideoAnalysis
-from mcp_content_pipeline.services.claude_client import (
+from mcp_content_pipeline.services.video_digest_client import (
     SYSTEM_PROMPT,
     analyse_transcript,
     build_user_prompt,
@@ -130,7 +130,7 @@ class TestAnalyseTranscript:
         mock_client = AsyncMock()
         mock_client.messages.create = AsyncMock(return_value=mock_message)
 
-        with patch("mcp_content_pipeline.services.claude_client.anthropic.AsyncAnthropic", return_value=mock_client):
+        with patch("mcp_content_pipeline.services.video_digest_client.anthropic.AsyncAnthropic", return_value=mock_client):
             result = await analyse_transcript(
                 api_key="test-key",
                 model="claude-sonnet-4-20250514",
@@ -148,7 +148,7 @@ class TestAnalyseTranscript:
         mock_client = AsyncMock()
         mock_client.messages.create = AsyncMock(return_value=mock_message)
 
-        with patch("mcp_content_pipeline.services.claude_client.anthropic.AsyncAnthropic", return_value=mock_client):
+        with patch("mcp_content_pipeline.services.video_digest_client.anthropic.AsyncAnthropic", return_value=mock_client):
             await analyse_transcript(
                 api_key="test-key",
                 model="claude-sonnet-4-20250514",
@@ -164,7 +164,7 @@ class TestAnalyseTranscript:
         mock_client = AsyncMock()
         mock_client.messages.create = AsyncMock(side_effect=Exception("API Error"))
 
-        with patch("mcp_content_pipeline.services.claude_client.anthropic.AsyncAnthropic", return_value=mock_client):
+        with patch("mcp_content_pipeline.services.video_digest_client.anthropic.AsyncAnthropic", return_value=mock_client):
             with pytest.raises(Exception, match="API Error"):
                 await analyse_transcript(
                     api_key="test-key",
