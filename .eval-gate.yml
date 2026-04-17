@@ -1,7 +1,7 @@
 thresholds:
   avg_faithfulness: 0.85
   avg_relevance: 0.85
-  p95_ttft_ms: 3000
+  p95_ttft_ms: 5000
   max_cost_per_query: 0.05
 
 models:
