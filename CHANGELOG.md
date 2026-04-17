@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.11.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.10.0...v0.11.0) (2026-04-17)
+
+
+### Features
+
+* add LLM eval gate for prompt quality regression testing ([3097990](https://github.com/berkayildi/mcp-content-pipeline/commit/309799060bc02207919a9f8a99aeb67e92e0b247))
+
+
+### Bug Fixes
+
+* address codebase audit findings ([bae3a04](https://github.com/berkayildi/mcp-content-pipeline/commit/bae3a044eb6420c7c4be97c7c9dde612911feb89))
+* raise eval thresholds to match proven quality baseline ([7fe29c6](https://github.com/berkayildi/mcp-content-pipeline/commit/7fe29c6613f378b8b122dc5c1746e1094ec88c98))
+* relax TTFT threshold for CI variance ([c9e4e7c](https://github.com/berkayildi/mcp-content-pipeline/commit/c9e4e7c0fc28bdfd6c925518a5806724f3da327d))
+* upgrade Gemini benchmark model and fix PR permissions ([be83182](https://github.com/berkayildi/mcp-content-pipeline/commit/be83182e2be40d7619a91451b4b0eeb8af33a84d))
+* use Gemini 2.5 Flash-Lite for eval benchmark ([c01e875](https://github.com/berkayildi/mcp-content-pipeline/commit/c01e8753a85a42d39c8fba725f27567b39991ca8))
+* use Gemini 3.1 Pro for eval benchmark ([18544d1](https://github.com/berkayildi/mcp-content-pipeline/commit/18544d1d916031a5be7f3ebe8450f26dbf651689))
+
+
+### Documentation
+
+* expand cost projections with subscription comparison ([d446d3e](https://github.com/berkayildi/mcp-content-pipeline/commit/d446d3ee19ef20a495efca4d1fc99369ad33cee2))
+
 ## [0.10.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.9.2...v0.10.0) (2026-04-12)
 
 
