@@ -54,6 +54,15 @@ mcp-llm-eval check --results eval/results/latest_summary.json --config .eval-gat
 
 Triggered automatically on PRs that change prompt files or model config. Benchmarks Claude Sonnet vs Gemini 2.5 Flash.
 
+### Benchmark
+
+```bash
+make benchmark        # Run eval against all 5 models (~$0.14, ~3 minutes)
+make benchmark-copy   # Copy results to ../llm-benchmarks/text-generation/
+```
+
+API keys must be set in `.env` (ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY).
+
 ## MCP Tools
 
 1. `analyse_video` — analyse a single YouTube video

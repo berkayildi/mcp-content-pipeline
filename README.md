@@ -139,6 +139,27 @@ Prompt and model changes are automatically evaluated in CI using [mcp-llm-eval](
 
 See `.eval-gate.yml` for threshold configuration and `eval/dataset.json` for the test dataset.
 
+### Running benchmarks locally
+
+The benchmark requires API keys for all providers. Create a `.env` file in the project root:
+
+```
+ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
+GOOGLE_API_KEY=AIza...
+```
+
+Then run:
+
+```bash
+make benchmark        # Run eval against all 5 models
+make benchmark-copy   # Copy results to llm-benchmarks repo
+```
+
+Results are written to `eval/results/` (gitignored). The benchmark output feeds into [LLMShot](https://llmshot.vercel.app) via the [llm-benchmarks](https://github.com/berkayildi/llm-benchmarks) repo at `text-generation/content-pipeline-summary.json` and `text-generation/content-pipeline-benchmark.json`.
+
+The model used in the production pipeline is Claude Sonnet (`claude-sonnet-4-6`), configured via `MCP_CP_ANTHROPIC_API_KEY`. The benchmark tests all 5 models against the same prompts to track quality and cost across providers.
+
 ## Development
 
 ```bash
