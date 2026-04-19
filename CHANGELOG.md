@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.11.0...v0.12.0) (2026-04-19)
+
+
+### Features
+
+* expand benchmark to 5 models, add Makefile ([c0f8ccc](https://github.com/berkayildi/mcp-content-pipeline/commit/c0f8ccc94784391bcf75c48861d6d47e5ebd8f80))
+
 ## [0.11.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.10.0...v0.11.0) (2026-04-17)
 
 
