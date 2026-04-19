@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.2](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.12.1...v0.12.2) (2026-04-19)
+
+
+### Documentation
+
+* add pipeline flow diagram ([3626b90](https://github.com/berkayildi/mcp-content-pipeline/commit/3626b90d0d161cceb228e2bf7270529d666c2ba0))
+* update readme ([959d2d4](https://github.com/berkayildi/mcp-content-pipeline/commit/959d2d4d13b58a881f5f7d2942f0bbd1731c1cd9))
+
 ## [0.12.1](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.12.0...v0.12.1) (2026-04-19)
 
 
