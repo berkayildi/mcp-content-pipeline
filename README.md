@@ -7,6 +7,14 @@
 
 A content analysis and digest pipeline for YouTube videos and X (Twitter) feeds, exposed as [MCP](https://modelcontextprotocol.io/) tools. Extract transcripts, fetch posts from curated accounts, and generate key takeaways, TLDRs, social hooks, and comic-book infographics — all callable by any MCP-compatible AI client like Claude Desktop.
 
+```mermaid
+flowchart LR
+    A[YouTube URL<br/>or X feed] --> B[Extract content<br/>Supadata / X API]
+    B --> C[Claude analysis<br/>takeaways, TLDR, hook]
+    C --> D[Gemini image<br/>comic infographic]
+    D --> E[Sync to GitHub<br/>markdown + image]
+```
+
 ## Why?
 
 Keeping up with YouTube channels and X accounts means scattered tabs, manual note-taking, and lost insights. This MCP server turns content consumption into structured, chainable tools. Analyse a Bloomberg video, digest your X feed, generate infographics, and sync everything to GitHub — all from a single conversation with Claude.
