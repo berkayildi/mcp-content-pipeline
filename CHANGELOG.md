@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.12.0...v0.12.1) (2026-04-19)
+
+
+### Bug Fixes
+
+* add path containment check for image_path in sync_to_github ([4d35ace](https://github.com/berkayildi/mcp-content-pipeline/commit/4d35ace9df94e41f07eebb061fa5da545f8ab89f))
+
 ## [0.12.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.11.0...v0.12.0) (2026-04-19)
 
 
