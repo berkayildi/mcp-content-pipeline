@@ -491,6 +491,91 @@ class TestSyncToGithub:
             await sync_to_github(analyses=[analysis], settings=settings)
 
 
+class TestSyncToGithubImagePathValidation:
+    """Tests that image_path arguments to the MCP tool are constrained to the allowed directory."""
+
+    @pytest.mark.asyncio
+    async def test_image_path_outside_allowed_base_rejected(self, analysis, tmp_path):
+        from unittest.mock import patch
+
+        from mcp_content_pipeline.config import Settings
+        from mcp_content_pipeline.server import sync_to_github as mcp_sync
+
+        allowed = tmp_path / "images"
+        allowed.mkdir()
+        settings = Settings(
+            anthropic_api_key="test",
+            github_token="token",
+            github_repo="owner/repo",
+            image_output_dir=str(allowed),
+        )
+
+        with patch("mcp_content_pipeline.server.get_settings", return_value=settings), \
+             pytest.raises(ValueError, match="image_path must be within"):
+            await mcp_sync(
+                analyses=[],
+                image_paths=[{
+                    "analysis": analysis.model_dump(),
+                    "image_path": "/etc/passwd",
+                }],
+            )
+
+    @pytest.mark.asyncio
+    async def test_image_path_relative_traversal_rejected(self, analysis, tmp_path):
+        from unittest.mock import patch
+
+        from mcp_content_pipeline.config import Settings
+        from mcp_content_pipeline.server import sync_to_github as mcp_sync
+
+        allowed = tmp_path / "images"
+        allowed.mkdir()
+        settings = Settings(
+            anthropic_api_key="test",
+            github_token="token",
+            github_repo="owner/repo",
+            image_output_dir=str(allowed),
+        )
+
+        with patch("mcp_content_pipeline.server.get_settings", return_value=settings), \
+             pytest.raises(ValueError, match="image_path must be within"):
+            await mcp_sync(
+                analyses=[],
+                image_paths=[{
+                    "analysis": analysis.model_dump(),
+                    "image_path": str(allowed / ".." / ".." / "etc" / "passwd"),
+                }],
+            )
+
+    @pytest.mark.asyncio
+    async def test_image_path_non_image_extension_rejected(self, analysis, tmp_path):
+        from unittest.mock import patch
+
+        from mcp_content_pipeline.config import Settings
+        from mcp_content_pipeline.server import sync_to_github as mcp_sync
+
+        allowed = tmp_path / "images"
+        allowed.mkdir()
+        bad_file = allowed / "secrets.txt"
+        bad_file.write_text("not an image")
+
+        settings = Settings(
+            anthropic_api_key="test",
+            github_token="token",
+            github_repo="owner/repo",
+            image_output_dir=str(allowed),
+        )
+
+        with patch("mcp_content_pipeline.server.get_settings", return_value=settings), \
+             pytest.raises(ValueError, match="png/jpg/jpeg/webp"):
+            await mcp_sync(
+                analyses=[],
+                image_paths=[{
+                    "analysis": analysis.model_dump(),
+                    "image_path": str(bad_file),
+                }],
+            )
+
+
 class TestGenerateXDigestIndex:
     def _make_digest(self, title: str, date: str, accounts: list[str] | None = None) -> XDigestAnalysis:
         return XDigestAnalysis(

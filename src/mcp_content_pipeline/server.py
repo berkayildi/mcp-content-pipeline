@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from mcp.server.fastmcp import FastMCP
 
 from mcp_content_pipeline.config import get_settings
@@ -137,10 +139,16 @@ async def sync_to_github(
 
     parsed_images = None
     if image_paths:
+        allowed_base = Path(settings.image_output_dir or "~/Downloads").expanduser().resolve()
         parsed_images = []
         for img in image_paths:
             analysis_obj = VideoAnalysis.model_validate(img["analysis"])
-            with open(img["image_path"], "rb") as f:
+            p = Path(img["image_path"]).expanduser().resolve()
+            if not p.is_relative_to(allowed_base):
+                raise ValueError(f"image_path must be within {allowed_base} (got {p})")
+            if p.suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp"}:
+                raise ValueError(f"image_path must be a png/jpg/jpeg/webp file (got {p.suffix})")
+            with open(p, "rb") as f:
                 image_bytes = f.read()
             parsed_images.append((analysis_obj, image_bytes))
 
