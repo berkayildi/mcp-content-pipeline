@@ -135,7 +135,7 @@ Estimated monthly costs for two usage patterns:
 
 ## Eval Gates
 
-Prompt and model changes are automatically evaluated in CI using [mcp-llm-eval](https://github.com/berkayildi/mcp-llm-eval). The eval dataset covers both YouTube analysis and X feed digest prompts, benchmarking Claude Sonnet and Gemini 2.5 Flash on the same test cases. PRs that touch system prompts or model config trigger an evaluation run that scores faithfulness and relevance against a reference dataset. The PR is blocked if quality regresses below configured thresholds.
+Prompt and model changes are automatically evaluated in CI using [mcp-llm-eval](https://github.com/berkayildi/mcp-llm-eval). The eval dataset covers both YouTube analysis and X feed digest prompts, benchmarking 5 models (Claude Sonnet 4.6, Claude Haiku 4.5, GPT-4o-mini, Gemini 2.5 Flash, Gemini 2.5 Flash-Lite) on the same test cases. PRs that touch system prompts or model config trigger an evaluation run that scores faithfulness and relevance against a reference dataset. The PR is blocked if quality regresses below configured thresholds.
 
 See `.eval-gate.yml` for threshold configuration and `eval/dataset.json` for the test dataset.
 
@@ -158,7 +158,12 @@ make benchmark-copy   # Copy results to llm-benchmarks repo
 
 Results are written to `eval/results/` (gitignored). The benchmark output feeds into [LLMShot](https://llmshot.vercel.app) via the [llm-benchmarks](https://github.com/berkayildi/llm-benchmarks) repo at `text-generation/content-pipeline-summary.json` and `text-generation/content-pipeline-benchmark.json`.
 
-The model used in the production pipeline is Claude Sonnet (`claude-sonnet-4-6`), configured via `MCP_CP_ANTHROPIC_API_KEY`. The benchmark tests all 5 models against the same prompts to track quality and cost across providers.
+This project uses mcp-llm-eval >= 0.4.0 (includes the Gemini 2.5
+Flash thinking-budget fix for fair provider comparison).
+
+Production uses Claude Sonnet (claude-sonnet-4-6). The benchmark
+tracks all 5 models so we can re-evaluate provider choice as
+capabilities and pricing change.
 
 ## Development
 
