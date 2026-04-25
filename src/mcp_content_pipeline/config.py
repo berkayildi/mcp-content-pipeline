@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     github_branch: str = "main"
     github_output_dir: str = "content/youtube"
     github_x_output_dir: str = "content/x-digest"
-    claude_model: str = "claude-sonnet-4-20250514"
+    claude_model: str = "claude-sonnet-4-6"
     gemini_api_key: str = ""
     gemini_model: str = "gemini-3.1-flash-image-preview"
     image_output_dir: str = ""

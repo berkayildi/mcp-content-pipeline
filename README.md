@@ -109,7 +109,7 @@ All prefixed with `MCP_CP_`:
 | `MCP_CP_GITHUB_OUTPUT_DIR`     | No              | Output directory for YouTube analyses (default: `content/youtube`)  |
 | `MCP_CP_GITHUB_X_OUTPUT_DIR`   | No              | Output directory for X digests (default: `content/x-digest`)        |
 | `MCP_CP_IMAGE_OUTPUT_DIR`      | No              | Directory for generated images (default: `~/Downloads`)             |
-| `MCP_CP_CLAUDE_MODEL`          | No              | Claude model to use (default: `claude-sonnet-4-20250514`)           |
+| `MCP_CP_CLAUDE_MODEL`          | No              | Claude model to use (default: `claude-sonnet-4-6`)                  |
 | `MCP_CP_MAX_TRANSCRIPT_TOKENS` | No              | Max transcript length in tokens (default: `100000`)                 |
 | `MCP_CP_GEMINI_API_KEY`        | For image       | Google AI Studio API key for image generation                       |
 | `MCP_CP_GEMINI_MODEL`          | No              | Gemini model for images (default: `gemini-3.1-flash-image-preview`) |
