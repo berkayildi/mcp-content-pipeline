@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.3](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.12.2...v0.12.3) (2026-04-26)
+
+
+### Documentation
+
+* **readme:** bump mcp-llm-eval reference to v0.7.0+, add role in ecosystem ([cea6629](https://github.com/berkayildi/mcp-content-pipeline/commit/cea6629b4128798749429b8d8d7e1ec7175115c1))
+
 ## [0.12.2](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.12.1...v0.12.2) (2026-04-19)
 
 
