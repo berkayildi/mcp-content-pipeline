@@ -19,6 +19,14 @@ flowchart LR
 
 Keeping up with YouTube channels and X accounts means scattered tabs, manual note-taking, and lost insights. This MCP server turns content consumption into structured, chainable tools. Analyse a Bloomberg video, digest your X feed, generate infographics, and sync everything to GitHub — all from a single conversation with Claude.
 
+## Role in ecosystem
+
+- **Uses**: [mcp-llm-eval](https://github.com/berkayildi/mcp-llm-eval) for evaluation and CI quality gates
+- **Produces**: benchmark JSON written to [llm-benchmarks](https://github.com/berkayildi/llm-benchmarks) under `text-generation/content-pipeline-*.json`
+- **Visible at**: [LLMShot's Text Generation domain](https://llmshot.vercel.app/text-generation), Content Pipeline sub-benchmark
+
+The eval dataset (`eval/dataset.json`) lives with this repo because the questions are specific to YouTube and X feed analysis — the dataset belongs with the use case, not the engine.
+
 ## Quick Start
 
 ```bash
@@ -166,12 +174,7 @@ make benchmark-copy   # Copy results to llm-benchmarks repo
 
 Results are written to `eval/results/` (gitignored). The benchmark output feeds into [LLMShot](https://llmshot.vercel.app) via the [llm-benchmarks](https://github.com/berkayildi/llm-benchmarks) repo at `text-generation/content-pipeline-summary.json` and `text-generation/content-pipeline-benchmark.json`.
 
-This project uses mcp-llm-eval >= 0.4.0 (includes the Gemini 2.5
-Flash thinking-budget fix for fair provider comparison).
-
-Production uses Claude Sonnet (claude-sonnet-4-6). The benchmark
-tracks all 5 models so we can re-evaluate provider choice as
-capabilities and pricing change.
+This project uses [mcp-llm-eval](https://github.com/berkayildi/mcp-llm-eval) v0.7.0+ for benchmarking and CI quality gates. Production uses Claude Sonnet (`claude-sonnet-4-6`). The benchmark tracks all 5 models so we can re-evaluate provider choice as capabilities and pricing evolve.
 
 ## Development
 
