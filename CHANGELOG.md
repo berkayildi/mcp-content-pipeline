@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.12.3...v0.13.0) (2026-04-28)
+
+
+### Features
+
+* **eval:** add gpt-5.5 and gemini-3-flash-preview to benchmark matrix ([6496b28](https://github.com/berkayildi/mcp-content-pipeline/commit/6496b28ce0548fe705e386a4b5ca0a59f24a8826))
+
 ## [0.12.3](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.12.2...v0.12.3) (2026-04-26)
 
 
