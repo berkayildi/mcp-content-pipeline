@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.13.0...v0.14.0) (2026-04-28)
+
+
+### Features
+
+* **eval:** add claude-opus-4-7 to model matrix ([94071dc](https://github.com/berkayildi/mcp-content-pipeline/commit/94071dceec9acd3506e96e1af88550ecf380d9dd))
+
 ## [0.13.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.12.3...v0.13.0) (2026-04-28)
 
 

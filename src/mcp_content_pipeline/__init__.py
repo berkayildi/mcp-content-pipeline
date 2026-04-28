@@ -1,3 +1,3 @@
 """YouTube video analysis and content generation pipeline exposed as MCP tools."""
 
-__version__ = "0.13.0"
+__version__ = "0.14.0"
