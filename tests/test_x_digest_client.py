@@ -157,7 +157,7 @@ class TestAnalyseXFeed:
         ):
             result = await analyse_x_feed(
                 api_key="test-key",
-                model="claude-sonnet-4-20250514",
+                model="claude-sonnet-4-6",
                 feed_result=sample_feed_result,
                 topics=["AI", "tech"],
             )
@@ -179,13 +179,13 @@ class TestAnalyseXFeed:
         ):
             await analyse_x_feed(
                 api_key="test-key",
-                model="claude-sonnet-4-20250514",
+                model="claude-sonnet-4-6",
                 feed_result=sample_feed_result,
                 topics=["AI"],
             )
             call_kwargs = mock_client.messages.create.call_args.kwargs
             assert call_kwargs["system"] == SYSTEM_PROMPT
-            assert call_kwargs["model"] == "claude-sonnet-4-20250514"
+            assert call_kwargs["model"] == "claude-sonnet-4-6"
 
     @pytest.mark.asyncio
     async def test_analyse_x_feed_api_error(self, sample_feed_result):
@@ -199,7 +199,7 @@ class TestAnalyseXFeed:
             with pytest.raises(Exception, match="API Error"):
                 await analyse_x_feed(
                     api_key="test-key",
-                    model="claude-sonnet-4-20250514",
+                    model="claude-sonnet-4-6",
                     feed_result=sample_feed_result,
                     topics=["AI"],
                 )

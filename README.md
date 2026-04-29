@@ -151,7 +151,7 @@ Estimated monthly costs for two usage patterns:
 
 ## Eval Gates
 
-Prompt and model changes are automatically evaluated in CI using [mcp-llm-eval](https://github.com/berkayildi/mcp-llm-eval). The eval dataset covers both YouTube analysis and X feed digest prompts, benchmarking 5 models (Claude Sonnet 4.6, Claude Haiku 4.5, GPT-4o-mini, Gemini 2.5 Flash, Gemini 2.5 Flash-Lite) on the same test cases. PRs that touch system prompts or model config trigger an evaluation run that scores faithfulness and relevance against a reference dataset. The PR is blocked if quality regresses below configured thresholds.
+Prompt and model changes are automatically evaluated in CI using [mcp-llm-eval](https://github.com/berkayildi/mcp-llm-eval). The eval dataset covers both YouTube analysis and X feed digest prompts, benchmarking 8 models (Claude Opus 4.7, Claude Sonnet 4.6, Claude Haiku 4.5, GPT-5.5, GPT-4o-mini, Gemini 3 Flash Preview, Gemini 2.5 Flash, Gemini 2.5 Flash-Lite) on the same test cases. PRs that touch system prompts or model config trigger an evaluation run that scores faithfulness and relevance against a reference dataset. The PR is blocked if quality regresses below configured thresholds.
 
 See `.eval-gate.yml` for threshold configuration and `eval/dataset.json` for the test dataset.
 
@@ -168,13 +168,13 @@ GOOGLE_API_KEY=AIza...
 Then run:
 
 ```bash
-make benchmark        # Run eval against all 5 models
+make benchmark        # Run eval against all 8 models
 make benchmark-copy   # Copy results to llm-benchmarks repo
 ```
 
 Results are written to `eval/results/` (gitignored). The benchmark output feeds into [LLMShot](https://llmshot.vercel.app) via the [llm-benchmarks](https://github.com/berkayildi/llm-benchmarks) repo at `text-generation/content-pipeline-summary.json` and `text-generation/content-pipeline-benchmark.json`.
 
-This project uses [mcp-llm-eval](https://github.com/berkayildi/mcp-llm-eval) v0.7.0+ for benchmarking and CI quality gates. Production uses Claude Sonnet (`claude-sonnet-4-6`). The benchmark tracks all 5 models so we can re-evaluate provider choice as capabilities and pricing evolve.
+This project uses [![mcp-llm-eval](https://img.shields.io/pypi/v/mcp-llm-eval?label=mcp-llm-eval&color=blue&style=flat-square)](https://pypi.org/project/mcp-llm-eval/) for benchmarking and CI quality gates. Production uses Claude Sonnet (`claude-sonnet-4-6`). The benchmark tracks all 8 models (3 Anthropic, 2 OpenAI, 3 Google) so we can re-evaluate provider choice as capabilities and pricing evolve.
 
 ## Development
 

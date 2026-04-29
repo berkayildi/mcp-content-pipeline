@@ -57,7 +57,7 @@ Triggered automatically on PRs that change prompt files or model config. Benchma
 ### Benchmark
 
 ```bash
-make benchmark        # Run eval against all 5 models (~$0.14, ~3 minutes)
+make benchmark        # Run eval against all 8 models (~$0.68, ~5 minutes)
 make benchmark-copy   # Copy results to ../llm-benchmarks/text-generation/
 ```
 

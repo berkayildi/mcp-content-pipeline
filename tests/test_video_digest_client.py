@@ -133,7 +133,7 @@ class TestAnalyseTranscript:
         with patch("mcp_content_pipeline.services.video_digest_client.anthropic.AsyncAnthropic", return_value=mock_client):
             result = await analyse_transcript(
                 api_key="test-key",
-                model="claude-sonnet-4-20250514",
+                model="claude-sonnet-4-6",
                 transcript=sample_transcript,
                 metadata=sample_video_metadata,
             )
@@ -151,13 +151,13 @@ class TestAnalyseTranscript:
         with patch("mcp_content_pipeline.services.video_digest_client.anthropic.AsyncAnthropic", return_value=mock_client):
             await analyse_transcript(
                 api_key="test-key",
-                model="claude-sonnet-4-20250514",
+                model="claude-sonnet-4-6",
                 transcript=sample_transcript,
                 metadata=sample_video_metadata,
             )
             call_kwargs = mock_client.messages.create.call_args.kwargs
             assert call_kwargs["system"] == SYSTEM_PROMPT
-            assert call_kwargs["model"] == "claude-sonnet-4-20250514"
+            assert call_kwargs["model"] == "claude-sonnet-4-6"
 
     @pytest.mark.asyncio
     async def test_analyse_transcript_api_error(self, sample_transcript, sample_video_metadata):
@@ -168,7 +168,7 @@ class TestAnalyseTranscript:
             with pytest.raises(Exception, match="API Error"):
                 await analyse_transcript(
                     api_key="test-key",
-                    model="claude-sonnet-4-20250514",
+                    model="claude-sonnet-4-6",
                     transcript=sample_transcript,
                     metadata=sample_video_metadata,
                 )
