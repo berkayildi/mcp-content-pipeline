@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.14.0...v0.14.1) (2026-04-29)
+
+
+### Documentation
+
+* update model count and badge, fix(tests): bump stale Claude model string ([e2a7dd2](https://github.com/berkayildi/mcp-content-pipeline/commit/e2a7dd2dce2b5ae9bdfecc6824036ea5e00a4a95))
+
 ## [0.14.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.13.0...v0.14.0) (2026-04-28)
 
 
