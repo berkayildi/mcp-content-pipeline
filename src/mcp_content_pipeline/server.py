@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
 from mcp_content_pipeline.config import get_settings
@@ -16,6 +17,8 @@ from mcp_content_pipeline.tools.list_channel_videos import (
     list_channel_videos as _list_channel_videos,
 )
 from mcp_content_pipeline.tools.sync_to_github import sync_to_github as _sync_to_github
+
+load_dotenv("/Users/berkay/repos/github/public/mcp-content-pipeline/.env")
 
 mcp = FastMCP("mcp-content-pipeline")
 
