@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.15.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.14.1...v0.15.0) (2026-10-02)
+
+
+### Features
+
+* provider-agnostic LLM driver (anthropic/openai/google) ([6ebd7b9](https://github.com/berkayildi/mcp-content-pipeline/commit/6ebd7b9a75d42f0a316efc6aed362b9523e1403a))
+
+
+### Bug Fixes
+
+* load .env from cwd or MCP_CP_ENV_FILE instead of a hardcoded path ([ee94caa](https://github.com/berkayildi/mcp-content-pipeline/commit/ee94caa779be1dc9d8f6478bed95a31885158aa8))
+* **server:** hardcode .env path for uvx invocation from Claude Desktop ([7093cd7](https://github.com/berkayildi/mcp-content-pipeline/commit/7093cd71c282b49fc187c84a6cd6849f2491b50c))
+
+
+### Documentation
+
+* fix stale references, trim narrative comments and README prose ([ebd48f1](https://github.com/berkayildi/mcp-content-pipeline/commit/ebd48f11763dc6f47768e70fa5532c081df49534))
+* group env vars by required-for feature ([e8a4cee](https://github.com/berkayildi/mcp-content-pipeline/commit/e8a4cee2bfd4083b54d737df8b3f4cdbd921769e))
+
 ## [0.14.1](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.14.0...v0.14.1) (2026-04-29)
 
 
