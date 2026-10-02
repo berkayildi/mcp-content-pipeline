@@ -88,27 +88,49 @@ Or with the full pipeline:
 
 ## Environment Variables
 
-All prefixed with `MCP_CP_`:
+All prefixed with `MCP_CP_`.
 
-| Variable                       | Required        | Description                                                         |
-| ------------------------------ | --------------- | ------------------------------------------------------------------- |
-| `MCP_CP_PIPELINE_PROVIDER`     | No              | Text-analysis driver: `anthropic` \| `openai` \| `google` (default: `anthropic`) |
-| `MCP_CP_PIPELINE_API_KEY`      | Yes             | API key for the selected provider above                             |
-| `MCP_CP_PIPELINE_MODEL`        | No              | Model name valid for the selected provider (default: `claude-sonnet-4-6`) |
-| `MCP_CP_SUPADATA_API_KEY`      | Yes for YouTube | Supadata API key for YouTube transcript extraction                  |
-| `MCP_CP_YOUTUBE_API_KEY`       | No              | YouTube Data API v3 key (only for `list_channel_videos`)            |
-| `MCP_CP_GITHUB_TOKEN`          | For sync        | GitHub personal access token                                        |
-| `MCP_CP_GITHUB_REPO`           | For sync        | Target repo in `owner/repo` format                                  |
-| `MCP_CP_GITHUB_BRANCH`         | No              | Branch to push to (default: `main`)                                 |
-| `MCP_CP_GITHUB_OUTPUT_DIR`     | No              | Output directory for YouTube analyses (default: `content/youtube`)  |
-| `MCP_CP_GITHUB_X_OUTPUT_DIR`   | No              | Output directory for X digests (default: `content/x-digest`)        |
-| `MCP_CP_IMAGE_OUTPUT_DIR`      | No              | Directory for generated images (default: `~/Downloads`)             |
-| `MCP_CP_MAX_TRANSCRIPT_TOKENS` | No              | Max transcript length in tokens (default: `100000`)                 |
-| `MCP_CP_GEMINI_API_KEY`        | For image       | Google AI Studio API key for image generation                       |
-| `MCP_CP_GEMINI_MODEL`          | No              | Gemini model for images (default: `gemini-3.1-flash-image-preview`) |
-| `MCP_CP_X_BEARER_TOKEN`        | For X digest    | X API v2 bearer token                                               |
-| `MCP_CP_X_ACCOUNTS`            | For X digest    | Comma-separated X usernames                                         |
-| `MCP_CP_X_TOPICS`              | No              | Comma-separated topics (default: AI,tech)                           |
+**Pipeline driver** — required for analyse_video, batch_analyse, analyse_x_feed
+
+| Variable            | Required | Description                                                               |
+| -------------------- | -------- | -------------------------------------------------------------------------- |
+| `PIPELINE_PROVIDER`  | No       | `anthropic` \| `openai` \| `google` (default: `anthropic`)                 |
+| `PIPELINE_API_KEY`   | Yes      | API key for the selected provider                                          |
+| `PIPELINE_MODEL`     | No       | Model name valid for the selected provider (default: `claude-sonnet-4-6`)  |
+
+**YouTube** — required for analyse_video, batch_analyse
+
+| Variable               | Required | Description                                          |
+| ----------------------- | -------- | ------------------------------------------------------ |
+| `SUPADATA_API_KEY`      | Yes      | Transcript extraction                                   |
+| `YOUTUBE_API_KEY`       | No       | Only for `list_channel_videos`                          |
+| `MAX_TRANSCRIPT_TOKENS` | No       | Default: `100000`                                       |
+
+**GitHub** — required for sync_to_github
+
+| Variable            | Required | Description                               |
+| -------------------- | -------- | -------------------------------------------- |
+| `GITHUB_TOKEN`       | Yes      | Personal access token                        |
+| `GITHUB_REPO`        | Yes      | Target repo, `owner/repo` format             |
+| `GITHUB_BRANCH`      | No       | Default: `main`                              |
+| `GITHUB_OUTPUT_DIR`  | No       | Default: `content/youtube`                   |
+| `GITHUB_X_OUTPUT_DIR`| No       | Default: `content/x-digest`                  |
+
+**X/Twitter** — required for analyse_x_feed
+
+| Variable       | Required | Description                      |
+| --------------- | -------- | ----------------------------------- |
+| `X_BEARER_TOKEN`| Yes      | X API v2 bearer token                |
+| `X_ACCOUNTS`    | Yes      | Comma-separated usernames            |
+| `X_TOPICS`      | No       | Default: `AI,tech`                   |
+
+**Image generation** — required for generate_image
+
+| Variable            | Required | Description                                             |
+| -------------------- | -------- | ----------------------------------------------------------- |
+| `GEMINI_API_KEY`    | Yes      | Google AI Studio API key                                     |
+| `GEMINI_MODEL`      | No       | Default: `gemini-3.1-flash-image-preview`                    |
+| `IMAGE_OUTPUT_DIR`  | No       | Default: `~/Downloads`                                       |
 
 ## Cost Projections
 

@@ -19,23 +19,33 @@ uv run mcp-content-pipeline
 
 ## Environment Variables
 
-All prefixed with `MCP_CP_`:
-- `MCP_CP_PIPELINE_PROVIDER` — text-analysis driver for analyse_video/batch_analyse/analyse_x_feed: `anthropic` | `openai` | `google` (default: anthropic). See `services/llm_client.py`.
-- `MCP_CP_PIPELINE_API_KEY` — required; API key for whichever provider is selected above
-- `MCP_CP_PIPELINE_MODEL` — required; model name valid for the selected provider (default: claude-sonnet-4-6)
-- `MCP_CP_YOUTUBE_API_KEY` — optional (only for list_channel_videos)
-- `MCP_CP_SUPADATA_API_KEY` — required for YouTube transcript extraction
-- `MCP_CP_GITHUB_TOKEN` — required for sync_to_github
-- `MCP_CP_GITHUB_REPO` — format: "owner/repo"
-- `MCP_CP_GITHUB_BRANCH` — branch to push to (default: main)
-- `MCP_CP_GITHUB_OUTPUT_DIR` — output directory for YouTube analyses (default: content/youtube)
-- `MCP_CP_MAX_TRANSCRIPT_TOKENS` — max transcript length in tokens (default: 100000)
-- `MCP_CP_X_BEARER_TOKEN` — required for analyse_x_feed
-- `MCP_CP_X_ACCOUNTS` — comma-separated X usernames
-- `MCP_CP_X_TOPICS` — comma-separated topics (default: AI,tech)
-- `MCP_CP_GEMINI_API_KEY` — required for generate_image
-- `MCP_CP_GEMINI_MODEL` — default: gemini-3.1-flash-image-preview
-- `MCP_CP_IMAGE_OUTPUT_DIR` — directory for generated images (default: ~/Downloads)
+All prefixed with `MCP_CP_`.
+
+**Pipeline driver** — required for analyse_video, batch_analyse, analyse_x_feed:
+- `PIPELINE_PROVIDER` — `anthropic` | `openai` | `google` (default: anthropic). See `services/llm_client.py`.
+- `PIPELINE_API_KEY` — API key for the selected provider
+- `PIPELINE_MODEL` — model name valid for the selected provider (default: claude-sonnet-4-6)
+
+**YouTube** — required for analyse_video, batch_analyse:
+- `SUPADATA_API_KEY` — transcript extraction
+- `YOUTUBE_API_KEY` — optional, only for list_channel_videos
+- `MAX_TRANSCRIPT_TOKENS` — optional (default: 100000)
+
+**GitHub** — required for sync_to_github:
+- `GITHUB_TOKEN`
+- `GITHUB_REPO` — format: "owner/repo"
+- `GITHUB_BRANCH` — optional (default: main)
+- `GITHUB_OUTPUT_DIR` — optional (default: content/youtube)
+
+**X/Twitter** — required for analyse_x_feed:
+- `X_BEARER_TOKEN`
+- `X_ACCOUNTS` — comma-separated usernames
+- `X_TOPICS` — optional (default: AI,tech)
+
+**Image generation** — required for generate_image:
+- `GEMINI_API_KEY`
+- `GEMINI_MODEL` — optional (default: gemini-3.1-flash-image-preview)
+- `IMAGE_OUTPUT_DIR` — optional (default: ~/Downloads)
 
 ## Testing
 
