@@ -1,4 +1,4 @@
-"""Anthropic API client for video analysis."""
+"""LLM-driven video analysis — provider-agnostic via services.llm_client."""
 
 from __future__ import annotations
 
@@ -6,9 +6,8 @@ import json
 import re
 from datetime import datetime
 
-import anthropic
-
 from mcp_content_pipeline.models.schemas import VideoAnalysis
+from mcp_content_pipeline.services.llm_client import complete
 
 SYSTEM_PROMPT = """\
 You are a content analyst and social media strategist. \
@@ -82,21 +81,19 @@ async def analyse_transcript(
     metadata: dict,
     custom_prompt: str | None = None,
     transcript_lang: str | None = None,
+    provider: str = "anthropic",
 ) -> VideoAnalysis:
-    """Send transcript to Claude for analysis."""
-    client = anthropic.AsyncAnthropic(api_key=api_key)
-
+    """Send transcript to the configured LLM provider for analysis."""
     user_prompt = build_user_prompt(transcript, metadata, custom_prompt)
 
     if transcript_lang and transcript_lang != "en":
         user_prompt += f"\n\nNOTE: The transcript is in language code '{transcript_lang}'. Translate all output to English."
 
-    message = await client.messages.create(
+    raw_text = await complete(
+        provider=provider,
+        api_key=api_key,
         model=model,
-        max_tokens=4096,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": user_prompt}],
+        system_prompt=SYSTEM_PROMPT,
+        user_prompt=user_prompt,
     )
-
-    raw_text = message.content[0].text
     return parse_analysis_response(raw_text, metadata)

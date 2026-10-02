@@ -67,15 +67,17 @@ def sample_analysis_result():
 
 
 @pytest.fixture
-def mock_anthropic_response(sample_analysis_result):
-    """Mocked Claude API response."""
+def mock_llm_response(sample_analysis_result):
+    """Mocked LLM driver response (provider-agnostic raw text)."""
     return json.dumps(sample_analysis_result.model_dump())
 
 
 @pytest.fixture
 def settings():
     return Settings(
-        anthropic_api_key="test-api-key",
+        pipeline_provider="anthropic",
+        pipeline_api_key="test-api-key",
+        pipeline_model="claude-sonnet-4-6",
         youtube_api_key="test-youtube-key",
         github_token="test-github-token",
         github_repo="owner/repo",

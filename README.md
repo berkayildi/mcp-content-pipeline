@@ -51,7 +51,9 @@ Add to your Claude Desktop MCP config (`~/Library/Application Support/Claude/cla
       "command": "/usr/local/bin/uvx",
       "args": ["mcp-content-pipeline"],
       "env": {
-        "MCP_CP_ANTHROPIC_API_KEY": "sk-ant-...",
+        "MCP_CP_PIPELINE_PROVIDER": "anthropic",
+        "MCP_CP_PIPELINE_MODEL": "claude-sonnet-4-6",
+        "MCP_CP_PIPELINE_API_KEY": "sk-ant-...",
         "MCP_CP_SUPADATA_API_KEY": "sd_...",
         "MCP_CP_GITHUB_TOKEN": "ghp_...",
         "MCP_CP_GITHUB_REPO": "your-username/your-repo",
@@ -95,11 +97,11 @@ Or with the full pipeline:
 
 | Tool                  | Description                                                               | Requires                                |
 | --------------------- | ------------------------------------------------------------------------- | --------------------------------------- |
-| `analyse_video`       | Analyse a single YouTube video — transcript, takeaways, TLDR, social hook | `ANTHROPIC_API_KEY`, `SUPADATA_API_KEY` |
-| `batch_analyse`       | Analyse multiple videos from a URL list or config file                    | `ANTHROPIC_API_KEY`, `SUPADATA_API_KEY` |
+| `analyse_video`       | Analyse a single YouTube video — transcript, takeaways, TLDR, social hook | `PIPELINE_API_KEY`, `SUPADATA_API_KEY` |
+| `batch_analyse`       | Analyse multiple videos from a URL list or config file                    | `PIPELINE_API_KEY`, `SUPADATA_API_KEY` |
 | `list_channel_videos` | Fetch recent videos from a YouTube channel                                | `YOUTUBE_API_KEY`                       |
 | `sync_to_github`      | Push analyses as markdown files to a GitHub repo                          | `GITHUB_TOKEN`, `GITHUB_REPO`           |
-| `analyse_x_feed`      | Analyse recent posts from curated X accounts — daily digest               | `X_BEARER_TOKEN`                        |
+| `analyse_x_feed`      | Analyse recent posts from curated X accounts — daily digest               | `PIPELINE_API_KEY`, `X_BEARER_TOKEN`    |
 | `generate_image`      | Generate comic-book infographic from analysis result                      | `GEMINI_API_KEY`                        |
 
 ## Environment Variables
@@ -108,7 +110,9 @@ All prefixed with `MCP_CP_`:
 
 | Variable                       | Required        | Description                                                         |
 | ------------------------------ | --------------- | ------------------------------------------------------------------- |
-| `MCP_CP_ANTHROPIC_API_KEY`     | Yes             | Anthropic API key for Claude analysis                               |
+| `MCP_CP_PIPELINE_PROVIDER`     | No              | Text-analysis driver: `anthropic` \| `openai` \| `google` (default: `anthropic`) |
+| `MCP_CP_PIPELINE_API_KEY`      | Yes             | API key for the selected provider above                             |
+| `MCP_CP_PIPELINE_MODEL`        | No              | Model name valid for the selected provider (default: `claude-sonnet-4-6`) |
 | `MCP_CP_SUPADATA_API_KEY`      | Yes for YouTube | Supadata API key for YouTube transcript extraction                  |
 | `MCP_CP_YOUTUBE_API_KEY`       | No              | YouTube Data API v3 key (only for `list_channel_videos`)            |
 | `MCP_CP_GITHUB_TOKEN`          | For sync        | GitHub personal access token                                        |
@@ -117,7 +121,6 @@ All prefixed with `MCP_CP_`:
 | `MCP_CP_GITHUB_OUTPUT_DIR`     | No              | Output directory for YouTube analyses (default: `content/youtube`)  |
 | `MCP_CP_GITHUB_X_OUTPUT_DIR`   | No              | Output directory for X digests (default: `content/x-digest`)        |
 | `MCP_CP_IMAGE_OUTPUT_DIR`      | No              | Directory for generated images (default: `~/Downloads`)             |
-| `MCP_CP_CLAUDE_MODEL`          | No              | Claude model to use (default: `claude-sonnet-4-6`)                  |
 | `MCP_CP_MAX_TRANSCRIPT_TOKENS` | No              | Max transcript length in tokens (default: `100000`)                 |
 | `MCP_CP_GEMINI_API_KEY`        | For image       | Google AI Studio API key for image generation                       |
 | `MCP_CP_GEMINI_MODEL`          | No              | Gemini model for images (default: `gemini-3.1-flash-image-preview`) |

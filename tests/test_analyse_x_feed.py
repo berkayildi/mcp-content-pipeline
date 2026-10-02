@@ -21,7 +21,7 @@ from mcp_content_pipeline.tools.analyse_x_feed import analyse_x_feed, x_digest_t
 @pytest.fixture
 def x_settings():
     return Settings(
-        anthropic_api_key="test-api-key",
+        pipeline_api_key="test-api-key",
         x_bearer_token="test-bearer-token",
         x_accounts=["karpathy", "bcherny"],
         x_topics=["AI", "tech"],
@@ -71,13 +71,13 @@ def sample_digest():
 class TestAnalyseXFeed:
     @pytest.mark.asyncio
     async def test_missing_bearer_token_raises(self):
-        settings = Settings(anthropic_api_key="test-key", x_bearer_token="", x_accounts=["testuser"])
+        settings = Settings(pipeline_api_key="test-key", x_bearer_token="", x_accounts=["testuser"])
         with pytest.raises(ValueError, match="X bearer token not configured"):
             await analyse_x_feed(settings=settings, usernames=["testuser"])
 
     @pytest.mark.asyncio
     async def test_empty_accounts_raises(self):
-        settings = Settings(anthropic_api_key="test-key", x_bearer_token="test-token", x_accounts=[])
+        settings = Settings(pipeline_api_key="test-key", x_bearer_token="test-token", x_accounts=[])
         with pytest.raises(ValueError, match="No X accounts specified"):
             await analyse_x_feed(settings=settings)
 
@@ -180,7 +180,7 @@ class TestAnalyseXFeed:
     @pytest.mark.asyncio
     async def test_default_topics_when_empty(self):
         settings = Settings(
-            anthropic_api_key="test-key",
+            pipeline_api_key="test-key",
             x_bearer_token="test-token",
             x_accounts=["testuser"],
             x_topics=[],

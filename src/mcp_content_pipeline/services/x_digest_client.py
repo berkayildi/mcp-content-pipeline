@@ -1,4 +1,4 @@
-"""Claude analysis client for X feed digests."""
+"""LLM-driven X feed digests — provider-agnostic via services.llm_client."""
 
 from __future__ import annotations
 
@@ -6,9 +6,8 @@ import json
 import re
 from datetime import datetime
 
-import anthropic
-
 from mcp_content_pipeline.models.schemas import XDigestAnalysis, XFeedFetchResult
+from mcp_content_pipeline.services.llm_client import complete
 
 SYSTEM_PROMPT = """\
 You are a content analyst and social media strategist. \
@@ -97,18 +96,16 @@ async def analyse_x_feed(
     model: str,
     feed_result: XFeedFetchResult,
     topics: list[str],
+    provider: str = "anthropic",
 ) -> XDigestAnalysis:
-    """Send X feed data to Claude for digest analysis."""
-    client = anthropic.AsyncAnthropic(api_key=api_key)
-
+    """Send X feed data to the configured LLM provider for digest analysis."""
     user_prompt = build_user_prompt(feed_result, topics)
 
-    message = await client.messages.create(
+    raw_text = await complete(
+        provider=provider,
+        api_key=api_key,
         model=model,
-        max_tokens=4096,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": user_prompt}],
+        system_prompt=SYSTEM_PROMPT,
+        user_prompt=user_prompt,
     )
-
-    raw_text = message.content[0].text
     return parse_digest_response(raw_text, feed_result, topics)

@@ -44,7 +44,7 @@ class TestListChannelVideos:
     @pytest.mark.asyncio
     async def test_list_channel_videos_missing_api_key(self):
         settings = Settings(
-            anthropic_api_key="test",
+            pipeline_api_key="test",
             youtube_api_key=None,
             github_token="test",
             github_repo="owner/repo",

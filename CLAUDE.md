@@ -20,14 +20,15 @@ uv run mcp-content-pipeline
 ## Environment Variables
 
 All prefixed with `MCP_CP_`:
-- `MCP_CP_ANTHROPIC_API_KEY` — required
+- `MCP_CP_PIPELINE_PROVIDER` — text-analysis driver for analyse_video/batch_analyse/analyse_x_feed: `anthropic` | `openai` | `google` (default: anthropic). See `services/llm_client.py`.
+- `MCP_CP_PIPELINE_API_KEY` — required; API key for whichever provider is selected above
+- `MCP_CP_PIPELINE_MODEL` — required; model name valid for the selected provider (default: claude-sonnet-4-6)
 - `MCP_CP_YOUTUBE_API_KEY` — optional (only for list_channel_videos)
 - `MCP_CP_SUPADATA_API_KEY` — required for YouTube transcript extraction
 - `MCP_CP_GITHUB_TOKEN` — required for sync_to_github
 - `MCP_CP_GITHUB_REPO` — format: "owner/repo"
 - `MCP_CP_GITHUB_BRANCH` — branch to push to (default: main)
 - `MCP_CP_GITHUB_OUTPUT_DIR` — output directory for YouTube analyses (default: content/youtube)
-- `MCP_CP_CLAUDE_MODEL` — default: claude-sonnet-4-6
 - `MCP_CP_MAX_TRANSCRIPT_TOKENS` — max transcript length in tokens (default: 100000)
 - `MCP_CP_X_BEARER_TOKEN` — required for analyse_x_feed
 - `MCP_CP_X_ACCOUNTS` — comma-separated X usernames

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -145,15 +145,10 @@ class TestParseDigestResponse:
 class TestAnalyseXFeed:
     @pytest.mark.asyncio
     async def test_analyse_x_feed_success(self, sample_feed_result, sample_digest_response):
-        mock_message = MagicMock()
-        mock_message.content = [MagicMock(text=json.dumps(sample_digest_response))]
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(return_value=mock_message)
-
         with patch(
-            "mcp_content_pipeline.services.x_digest_client.anthropic.AsyncAnthropic",
-            return_value=mock_client,
+            "mcp_content_pipeline.services.x_digest_client.complete",
+            new_callable=AsyncMock,
+            return_value=json.dumps(sample_digest_response),
         ):
             result = await analyse_x_feed(
                 api_key="test-key",
@@ -167,34 +162,29 @@ class TestAnalyseXFeed:
 
     @pytest.mark.asyncio
     async def test_analyse_x_feed_uses_system_prompt(self, sample_feed_result, sample_digest_response):
-        mock_message = MagicMock()
-        mock_message.content = [MagicMock(text=json.dumps(sample_digest_response))]
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(return_value=mock_message)
-
         with patch(
-            "mcp_content_pipeline.services.x_digest_client.anthropic.AsyncAnthropic",
-            return_value=mock_client,
-        ):
+            "mcp_content_pipeline.services.x_digest_client.complete",
+            new_callable=AsyncMock,
+            return_value=json.dumps(sample_digest_response),
+        ) as mock_complete:
             await analyse_x_feed(
                 api_key="test-key",
                 model="claude-sonnet-4-6",
                 feed_result=sample_feed_result,
                 topics=["AI"],
+                provider="anthropic",
             )
-            call_kwargs = mock_client.messages.create.call_args.kwargs
-            assert call_kwargs["system"] == SYSTEM_PROMPT
+            call_kwargs = mock_complete.call_args.kwargs
+            assert call_kwargs["system_prompt"] == SYSTEM_PROMPT
             assert call_kwargs["model"] == "claude-sonnet-4-6"
+            assert call_kwargs["provider"] == "anthropic"
 
     @pytest.mark.asyncio
     async def test_analyse_x_feed_api_error(self, sample_feed_result):
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(side_effect=Exception("API Error"))
-
         with patch(
-            "mcp_content_pipeline.services.x_digest_client.anthropic.AsyncAnthropic",
-            return_value=mock_client,
+            "mcp_content_pipeline.services.x_digest_client.complete",
+            new_callable=AsyncMock,
+            side_effect=Exception("API Error"),
         ):
             with pytest.raises(Exception, match="API Error"):
                 await analyse_x_feed(

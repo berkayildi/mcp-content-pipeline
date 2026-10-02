@@ -30,7 +30,7 @@ class TestGenerateImageTool:
     @pytest.mark.asyncio
     async def test_success(self, valid_analysis_dict):
         settings = Settings(
-            anthropic_api_key="test",
+            pipeline_api_key="test",
             gemini_api_key="test-gemini-key",
         )
         mock_result = ImageGenerationResult(
@@ -54,7 +54,7 @@ class TestGenerateImageTool:
     @pytest.mark.asyncio
     async def test_custom_output_dir(self, valid_analysis_dict):
         settings = Settings(
-            anthropic_api_key="test",
+            pipeline_api_key="test",
             gemini_api_key="test-gemini-key",
             image_output_dir="/custom/images",
         )
@@ -77,7 +77,7 @@ class TestGenerateImageTool:
     @pytest.mark.asyncio
     async def test_missing_api_key(self, valid_analysis_dict):
         settings = Settings(
-            anthropic_api_key="test",
+            pipeline_api_key="test",
             gemini_api_key="",
         )
         with pytest.raises(ValueError, match="Gemini API key not configured"):
@@ -86,7 +86,7 @@ class TestGenerateImageTool:
     @pytest.mark.asyncio
     async def test_invalid_analysis_dict(self):
         settings = Settings(
-            anthropic_api_key="test",
+            pipeline_api_key="test",
             gemini_api_key="test-gemini-key",
         )
         with pytest.raises(Exception):

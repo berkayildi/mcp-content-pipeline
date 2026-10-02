@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -123,14 +123,12 @@ class TestParseAnalysisResponse:
 
 class TestAnalyseTranscript:
     @pytest.mark.asyncio
-    async def test_analyse_transcript_success(self, sample_transcript, sample_video_metadata, mock_anthropic_response):
-        mock_message = MagicMock()
-        mock_message.content = [MagicMock(text=mock_anthropic_response)]
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(return_value=mock_message)
-
-        with patch("mcp_content_pipeline.services.video_digest_client.anthropic.AsyncAnthropic", return_value=mock_client):
+    async def test_analyse_transcript_success(self, sample_transcript, sample_video_metadata, mock_llm_response):
+        with patch(
+            "mcp_content_pipeline.services.video_digest_client.complete",
+            new_callable=AsyncMock,
+            return_value=mock_llm_response,
+        ):
             result = await analyse_transcript(
                 api_key="test-key",
                 model="claude-sonnet-4-6",
@@ -141,30 +139,31 @@ class TestAnalyseTranscript:
             assert len(result.key_takeaways) > 0
 
     @pytest.mark.asyncio
-    async def test_analyse_transcript_uses_system_prompt(self, sample_transcript, sample_video_metadata, mock_anthropic_response):
-        mock_message = MagicMock()
-        mock_message.content = [MagicMock(text=mock_anthropic_response)]
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(return_value=mock_message)
-
-        with patch("mcp_content_pipeline.services.video_digest_client.anthropic.AsyncAnthropic", return_value=mock_client):
+    async def test_analyse_transcript_uses_system_prompt(self, sample_transcript, sample_video_metadata, mock_llm_response):
+        with patch(
+            "mcp_content_pipeline.services.video_digest_client.complete",
+            new_callable=AsyncMock,
+            return_value=mock_llm_response,
+        ) as mock_complete:
             await analyse_transcript(
                 api_key="test-key",
                 model="claude-sonnet-4-6",
                 transcript=sample_transcript,
                 metadata=sample_video_metadata,
+                provider="anthropic",
             )
-            call_kwargs = mock_client.messages.create.call_args.kwargs
-            assert call_kwargs["system"] == SYSTEM_PROMPT
+            call_kwargs = mock_complete.call_args.kwargs
+            assert call_kwargs["system_prompt"] == SYSTEM_PROMPT
             assert call_kwargs["model"] == "claude-sonnet-4-6"
+            assert call_kwargs["provider"] == "anthropic"
 
     @pytest.mark.asyncio
     async def test_analyse_transcript_api_error(self, sample_transcript, sample_video_metadata):
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(side_effect=Exception("API Error"))
-
-        with patch("mcp_content_pipeline.services.video_digest_client.anthropic.AsyncAnthropic", return_value=mock_client):
+        with patch(
+            "mcp_content_pipeline.services.video_digest_client.complete",
+            new_callable=AsyncMock,
+            side_effect=Exception("API Error"),
+        ):
             with pytest.raises(Exception, match="API Error"):
                 await analyse_transcript(
                     api_key="test-key",

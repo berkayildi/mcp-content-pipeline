@@ -428,7 +428,7 @@ class TestSyncToGithub:
         from mcp_content_pipeline.config import Settings
 
         settings = Settings(
-            anthropic_api_key="test",
+            pipeline_api_key="test",
             github_token="token",
             github_repo="owner/repo",
         )
@@ -442,7 +442,7 @@ class TestSyncToGithub:
         from mcp_content_pipeline.config import Settings
 
         settings = Settings(
-            anthropic_api_key="test",
+            pipeline_api_key="test",
             github_token="token",
             github_repo="owner/repo",
         )
@@ -456,7 +456,7 @@ class TestSyncToGithub:
         from mcp_content_pipeline.config import Settings
 
         settings = Settings(
-            anthropic_api_key="test",
+            pipeline_api_key="test",
             github_token="token",
             github_repo="owner/repo",
         )
@@ -471,7 +471,7 @@ class TestSyncToGithub:
         from mcp_content_pipeline.config import Settings
 
         settings = Settings(
-            anthropic_api_key="test",
+            pipeline_api_key="test",
             github_token="",
             github_repo="owner/repo",
         )
@@ -483,7 +483,7 @@ class TestSyncToGithub:
         from mcp_content_pipeline.config import Settings
 
         settings = Settings(
-            anthropic_api_key="test",
+            pipeline_api_key="test",
             github_token="token",
             github_repo="",
         )
@@ -504,7 +504,7 @@ class TestSyncToGithubImagePathValidation:
         allowed = tmp_path / "images"
         allowed.mkdir()
         settings = Settings(
-            anthropic_api_key="test",
+            pipeline_api_key="test",
             github_token="token",
             github_repo="owner/repo",
             image_output_dir=str(allowed),
@@ -530,7 +530,7 @@ class TestSyncToGithubImagePathValidation:
         allowed = tmp_path / "images"
         allowed.mkdir()
         settings = Settings(
-            anthropic_api_key="test",
+            pipeline_api_key="test",
             github_token="token",
             github_repo="owner/repo",
             image_output_dir=str(allowed),
@@ -559,7 +559,7 @@ class TestSyncToGithubImagePathValidation:
         bad_file.write_text("not an image")
 
         settings = Settings(
-            anthropic_api_key="test",
+            pipeline_api_key="test",
             github_token="token",
             github_repo="owner/repo",
             image_output_dir=str(allowed),

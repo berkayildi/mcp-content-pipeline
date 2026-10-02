@@ -31,12 +31,13 @@ async def analyse_video(
         metadata["title"] = supadata_title
 
     analysis = await analyse_transcript(
-        api_key=settings.anthropic_api_key,
-        model=settings.claude_model,
+        api_key=settings.pipeline_api_key,
+        model=settings.pipeline_model,
         transcript=transcript_text,
         metadata=metadata,
         custom_prompt=custom_prompt,
         transcript_lang=transcript_lang,
+        provider=settings.pipeline_provider,
     )
 
     return analysis

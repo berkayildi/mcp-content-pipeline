@@ -55,10 +55,11 @@ async def analyse_x_feed(
         raise RuntimeError(f"No posts found in the last {hours_back} hours")
 
     analysis = await _analyse_digest(
-        api_key=settings.anthropic_api_key,
-        model=settings.claude_model,
+        api_key=settings.pipeline_api_key,
+        model=settings.pipeline_model,
         feed_result=feed_result,
         topics=feed_topics,
+        provider=settings.pipeline_provider,
     )
 
     return analysis

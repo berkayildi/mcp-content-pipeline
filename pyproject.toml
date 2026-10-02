@@ -19,6 +19,7 @@ classifiers = [
 dependencies = [
     "mcp[cli]<2",
     "anthropic",
+    "openai",
     "google-api-python-client",
     "google-genai",
     "pygithub",
