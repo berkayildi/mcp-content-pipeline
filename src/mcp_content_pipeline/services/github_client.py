@@ -132,11 +132,7 @@ def generate_index(
     output_dir: str,
     existing_index_content: str | None = None,
 ) -> str:
-    """Generate an index.md listing all analyses as a table.
-
-    If existing_index_content is provided, merges new analyses with existing
-    entries (deduplicating by filename) and sorts by date descending.
-    """
+    """Generate an index.md table; merges with existing_index_content if provided."""
     # Start with existing entries
     entries: dict[str, str] = {}
     if existing_index_content:
@@ -174,11 +170,7 @@ def generate_x_digest_index(
     output_dir: str,
     existing_index_content: str | None = None,
 ) -> str:
-    """Generate an index.md listing all X digest analyses as a table.
-
-    If existing_index_content is provided, merges new digests with existing
-    entries (deduplicating by filename) and sorts by date descending.
-    """
+    """Generate an index.md table of X digests; merges with existing_index_content if provided."""
     entries: dict[str, str] = {}
     if existing_index_content:
         entries = parse_index_entries(existing_index_content)

@@ -110,11 +110,7 @@ async def fetch_x_feed(
     exclude_retweets: bool = True,
     exclude_replies: bool = True,
 ) -> XFeedFetchResult:
-    """Fetch recent posts from multiple X accounts.
-
-    Resolves usernames to user IDs, fetches timelines, and returns
-    all posts sorted by engagement (likes + retweets) descending.
-    """
+    """Fetch recent posts from multiple X accounts, sorted by engagement descending."""
     start_time = (datetime.now(timezone.utc) - timedelta(hours=hours_back)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     all_posts: list[XPost] = []

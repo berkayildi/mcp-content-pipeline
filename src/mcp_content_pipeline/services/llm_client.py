@@ -1,10 +1,4 @@
-"""Provider-agnostic text-completion client — the analysis "driver".
-
-Backs analyse_video, batch_analyse, and analyse_x_feed. Swapping
-MCP_CP_PIPELINE_PROVIDER (anthropic | openai | google) changes which API
-MCP_CP_PIPELINE_API_KEY and MCP_CP_PIPELINE_MODEL are sent to; the calling
-code and prompts stay identical.
-"""
+"""Provider-agnostic text-completion driver for analyse_video, batch_analyse, analyse_x_feed."""
 
 from __future__ import annotations
 

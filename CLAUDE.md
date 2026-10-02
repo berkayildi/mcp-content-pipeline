@@ -53,7 +53,7 @@ mcp-llm-eval run --config .eval-gate.yml --dataset eval/dataset.json --output-di
 mcp-llm-eval check --results eval/results/latest_summary.json --config .eval-gate.yml
 ```
 
-Triggered automatically on PRs that change prompt files or model config. Benchmarks Claude Sonnet vs Gemini 2.5 Flash.
+Triggered automatically on PRs that change prompt files or model config. Benchmarks 8 models across Anthropic/OpenAI/Google.
 
 ### Benchmark
 

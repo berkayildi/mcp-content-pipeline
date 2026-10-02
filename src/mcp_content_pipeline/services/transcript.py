@@ -26,10 +26,7 @@ def parse_video_id(url: str) -> str:
 async def fetch_transcript(
     url: str, max_tokens: int = 100000, supadata_api_key: str = ""
 ) -> tuple[str, str, str | None]:
-    """Fetch transcript for a YouTube video via Supadata API.
-
-    Returns a tuple of (transcript_text, language_code, title_or_none).
-    """
+    """Fetch transcript for a YouTube video via Supadata API; returns (text, lang, title)."""
     if not supadata_api_key:
         raise ValueError("Supadata API key is required for transcript extraction")
 
@@ -104,12 +101,7 @@ def _truncate(text: str, max_tokens: int) -> str:
 
 
 async def fetch_video_metadata(video_id_or_url: str) -> dict:
-    """Fetch video metadata via oembed (no API key needed).
-
-    Accepts a bare video ID or any YouTube URL (including /live/ URLs).
-    The URL is normalised to youtube.com/watch?v= before calling oEmbed,
-    because the oEmbed endpoint rejects /live/ URLs.
-    """
+    """Fetch video metadata via oembed; /live/ URLs are normalised first since oEmbed rejects them."""
     try:
         video_id = parse_video_id(video_id_or_url)
     except ValueError:

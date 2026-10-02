@@ -5,19 +5,15 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/pypi/pyversions/mcp-content-pipeline)](https://pypi.org/project/mcp-content-pipeline/)
 
-A content analysis and digest pipeline for YouTube videos and X (Twitter) feeds, exposed as [MCP](https://modelcontextprotocol.io/) tools. Extract transcripts, fetch posts from curated accounts, and generate key takeaways, TLDRs, social hooks, and comic-book infographics — all callable by any MCP-compatible AI client like Claude Desktop.
+A content analysis and digest pipeline for YouTube videos and X (Twitter) feeds, exposed as [MCP](https://modelcontextprotocol.io/) tools: extract transcripts, fetch posts from curated accounts, generate key takeaways/TLDRs/social hooks/infographics, sync to GitHub.
 
 ```mermaid
 flowchart LR
     A[YouTube URL<br/>or X feed] --> B[Extract content<br/>Supadata / X API]
-    B --> C[Claude analysis<br/>takeaways, TLDR, hook]
+    B --> C[LLM analysis<br/>takeaways, TLDR, hook]
     C --> D[Gemini image<br/>comic infographic]
     D --> E[Sync to GitHub<br/>markdown + image]
 ```
-
-## Why?
-
-Keeping up with YouTube channels and X accounts means scattered tabs, manual note-taking, and lost insights. This MCP server turns content consumption into structured, chainable tools. Analyse a Bloomberg video, digest your X feed, generate infographics, and sync everything to GitHub — all from a single conversation with Claude.
 
 ## Role in ecosystem
 
@@ -42,36 +38,22 @@ mcp-content-pipeline
 
 ### Claude Desktop Configuration
 
-Add to your Claude Desktop MCP config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+`server.py` loads `.env` directly from a path hardcoded at the top of the file — edit that path to match your clone, fill in `.env` (see `.env.example`), then add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "content-pipeline": {
       "command": "/usr/local/bin/uvx",
-      "args": ["mcp-content-pipeline"],
-      "env": {
-        "MCP_CP_PIPELINE_PROVIDER": "anthropic",
-        "MCP_CP_PIPELINE_MODEL": "claude-sonnet-4-6",
-        "MCP_CP_PIPELINE_API_KEY": "sk-ant-...",
-        "MCP_CP_SUPADATA_API_KEY": "sd_...",
-        "MCP_CP_GITHUB_TOKEN": "ghp_...",
-        "MCP_CP_GITHUB_REPO": "your-username/your-repo",
-        "MCP_CP_GEMINI_API_KEY": "your-gemini-api-key",
-        "MCP_CP_X_BEARER_TOKEN": "your-x-bearer-token",
-        "MCP_CP_X_ACCOUNTS": "karpathy,bcherny,atmoio,steipete",
-        "MCP_CP_X_TOPICS": "AI,tech,engineering"
-      }
+      "args": ["mcp-content-pipeline"]
     }
   }
 }
 ```
 
+No `env` block needed — all config comes from `.env`.
+
 ## Usage
-
-Once configured in Claude Desktop, use the tools in a single conversation.
-
-> **Tip:** Including "content-pipeline" for YouTube or "X feed" for Twitter helps Claude Desktop route to the right tool.
 
 **YouTube Analysis**
 
@@ -154,7 +136,7 @@ Estimated monthly costs for two usage patterns:
 
 ## Eval Gates
 
-Prompt and model changes are automatically evaluated in CI using [mcp-llm-eval](https://github.com/berkayildi/mcp-llm-eval). The eval dataset covers both YouTube analysis and X feed digest prompts, benchmarking 8 models (Claude Opus 4.7, Claude Sonnet 4.6, Claude Haiku 4.5, GPT-5.5, GPT-4o-mini, Gemini 3 Flash Preview, Gemini 2.5 Flash, Gemini 2.5 Flash-Lite) on the same test cases. PRs that touch system prompts or model config trigger an evaluation run that scores faithfulness and relevance against a reference dataset. The PR is blocked if quality regresses below configured thresholds.
+PRs touching system prompts or model config trigger a CI run via [mcp-llm-eval](https://github.com/berkayildi/mcp-llm-eval), scoring faithfulness/relevance across 8 models against a reference dataset; the PR is blocked below configured thresholds.
 
 See `.eval-gate.yml` for threshold configuration and `eval/dataset.json` for the test dataset.
 
@@ -175,14 +157,14 @@ make benchmark        # Run eval against all 8 models
 make benchmark-copy   # Copy results to llm-benchmarks repo
 ```
 
-Results are written to `eval/results/` (gitignored). The benchmark output feeds into [LLMShot](https://llmshot.vercel.app) via the [llm-benchmarks](https://github.com/berkayildi/llm-benchmarks) repo at `text-generation/content-pipeline-summary.json` and `text-generation/content-pipeline-benchmark.json`.
+Results are written to `eval/results/` (gitignored) and feed [LLMShot](https://llmshot.vercel.app) via the [llm-benchmarks](https://github.com/berkayildi/llm-benchmarks) repo (`text-generation/content-pipeline-{summary,benchmark}.json`).
 
-This project uses [![mcp-llm-eval](https://img.shields.io/pypi/v/mcp-llm-eval?label=mcp-llm-eval&color=blue&style=flat-square)](https://pypi.org/project/mcp-llm-eval/) for benchmarking and CI quality gates. Production uses Claude Sonnet (`claude-sonnet-4-6`). The benchmark tracks all 8 models (3 Anthropic, 2 OpenAI, 3 Google) so we can re-evaluate provider choice as capabilities and pricing evolve.
+[![mcp-llm-eval](https://img.shields.io/pypi/v/mcp-llm-eval?label=mcp-llm-eval&color=blue&style=flat-square)](https://pypi.org/project/mcp-llm-eval/) powers CI quality gates. The pipeline's own driver (`MCP_CP_PIPELINE_PROVIDER`) is configurable at runtime — see Environment Variables above.
 
 ## Development
 
 ```bash
-git clone https://github.com/your-username/mcp-content-pipeline.git
+git clone https://github.com/berkayildi/mcp-content-pipeline.git
 cd mcp-content-pipeline
 uv sync
 uv run pytest -v --cov=src/mcp_content_pipeline
@@ -191,9 +173,8 @@ uv run ruff check src/ tests/
 
 ## Security
 
-- All credentials are configured via local environment variables — never committed to the repo
-- The tool is open source but your API keys, YouTube key, and GitHub token stay on your machine
-- **Never** create a `.env` file in the repo — use shell exports or Claude Desktop config instead
+- Credentials live in a local `.env` (gitignored, see `.env.example`) or Claude Desktop config — never committed
+- All API keys stay on your machine; nothing is sent anywhere but the configured providers
 
 ## Contributing
 
