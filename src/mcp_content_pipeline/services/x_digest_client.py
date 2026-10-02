@@ -51,7 +51,7 @@ Respond ONLY with valid JSON — no markdown fences, no preamble."""
 
 
 def build_user_prompt(feed_result: XFeedFetchResult, topics: list[str]) -> str:
-    """Build the user prompt for Claude from feed data."""
+    """Build the user prompt for the LLM from feed data."""
     parts = [
         f"Accounts: {', '.join(feed_result.accounts)}",
         f"Topics: {', '.join(topics)}",
@@ -74,7 +74,7 @@ def build_user_prompt(feed_result: XFeedFetchResult, topics: list[str]) -> str:
 
 
 def parse_digest_response(raw: str, feed_result: XFeedFetchResult, topics: list[str]) -> XDigestAnalysis:
-    """Parse Claude's response into an XDigestAnalysis, handling non-clean JSON."""
+    """Parse the LLM response into an XDigestAnalysis, handling non-clean JSON."""
     cleaned = raw.strip()
     cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
     cleaned = re.sub(r"\s*```$", "", cleaned)

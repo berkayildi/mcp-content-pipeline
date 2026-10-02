@@ -6,7 +6,7 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [{ name = "Berkay Yildirim" }]
-keywords = ["mcp", "youtube", "content", "analysis", "claude", "twitter", "x-api", "digest"]
+keywords = ["mcp", "youtube", "content", "analysis", "llm", "claude", "twitter", "x-api", "digest"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -27,6 +27,7 @@ dependencies = [
     "pydantic-settings",
     "python-dotenv",
     "python-slugify",
+    "pyyaml",
     "httpx",
 ]
 

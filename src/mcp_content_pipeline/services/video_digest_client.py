@@ -41,7 +41,7 @@ def build_user_prompt(
     metadata: dict,
     custom_prompt: str | None = None,
 ) -> str:
-    """Build the user prompt for Claude."""
+    """Build the user prompt for the LLM."""
     parts = [
         f"Video Title: {metadata.get('title', 'Unknown')}",
         f"Channel: {metadata.get('channel', 'Unknown')}",
@@ -56,7 +56,7 @@ def build_user_prompt(
 
 
 def parse_analysis_response(raw: str, metadata: dict) -> VideoAnalysis:
-    """Parse Claude's response into a VideoAnalysis, handling non-clean JSON."""
+    """Parse the LLM response into a VideoAnalysis, handling non-clean JSON."""
     # Strip markdown code fences if present
     cleaned = raw.strip()
     cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)

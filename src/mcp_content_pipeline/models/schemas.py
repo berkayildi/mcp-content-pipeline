@@ -7,14 +7,6 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
-class VideoMetadata(BaseModel):
-    title: str
-    channel: str
-    url: str
-    duration: str | None = None
-    publish_date: str | None = None
-
-
 class VideoAnalysis(BaseModel):
     title: str
     channel: str
@@ -26,14 +18,14 @@ class VideoAnalysis(BaseModel):
     topics: list[str]
 
 
-class BatchAnalysisResult(BaseModel):
-    successes: list[VideoAnalysis] = Field(default_factory=list)
-    failures: list[BatchFailure] = Field(default_factory=list)
-
-
 class BatchFailure(BaseModel):
     url: str
     error: str
+
+
+class BatchAnalysisResult(BaseModel):
+    successes: list[VideoAnalysis] = Field(default_factory=list)
+    failures: list[BatchFailure] = Field(default_factory=list)
 
 
 class ChannelVideo(BaseModel):
@@ -107,7 +99,7 @@ class XNotablePost(BaseModel):
 
 
 class XDigestAnalysis(BaseModel):
-    """Claude-generated digest of X feed posts."""
+    """LLM-generated digest of X feed posts."""
 
     title: str
     date_analysed: str = Field(default_factory=lambda: datetime.now().isoformat())
@@ -120,8 +112,3 @@ class XDigestAnalysis(BaseModel):
     post_count: int = 0
     source: str = "x_feed"
 
-
-# Rebuild models with forward references
-BatchAnalysisResult.model_rebuild()
-XFeedFetchResult.model_rebuild()
-XDigestAnalysis.model_rebuild()

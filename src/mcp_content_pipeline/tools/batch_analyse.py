@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import yaml
+
 from mcp_content_pipeline.config import Settings
 from mcp_content_pipeline.models.schemas import BatchAnalysisResult, BatchFailure
 from mcp_content_pipeline.tools.analyse_video import analyse_video
@@ -27,9 +29,6 @@ async def batch_analyse(
             )
         content = path.read_text()
         if path.suffix in (".yaml", ".yml"):
-            import importlib
-
-            yaml = importlib.import_module("yaml")
             data = yaml.safe_load(content)
         else:
             data = json.loads(content)

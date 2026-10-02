@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from datetime import datetime
 
-from github import Github, GithubException
+from github import Auth, Github, GithubException
 from slugify import slugify
 
 from mcp_content_pipeline.models.schemas import SyncFileResult, SyncResult, VideoAnalysis, XDigestAnalysis
@@ -251,7 +251,7 @@ async def sync_to_github(
     x_output_dir: str | None = None,
 ) -> SyncResult:
     """Push analysis markdown files to GitHub."""
-    g = Github(token)
+    g = Github(auth=Auth.Token(token))
     repo = g.get_repo(repo_name)
 
     file_results: list[SyncFileResult] = []

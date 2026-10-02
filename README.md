@@ -26,32 +26,44 @@ The eval dataset (`eval/dataset.json`) lives with this repo because the question
 ## Quick Start
 
 ```bash
-uvx mcp-content-pipeline
+git clone https://github.com/berkayildi/mcp-content-pipeline.git
+cd mcp-content-pipeline
+cp .env.example .env   # fill in the keys for the tools you use
+uv sync
 ```
 
-Or install explicitly:
+### Configuration
 
-```bash
-uv tool install mcp-content-pipeline
-mcp-content-pipeline
-```
+All config lives in a local `.env` (gitignored). On startup the server loads the nearest `.env` from its working directory upwards; set `MCP_CP_ENV_FILE` to load one from an explicit path instead. Variables already present in the process environment take precedence over `.env`.
 
-### Claude Desktop Configuration
+### MCP client
 
-`server.py` loads `.env` directly from a path hardcoded at the top of the file — edit that path to match your clone, fill in `.env` (see `.env.example`), then add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+Launch the server from the clone so it picks up `.env` — the same block works for Claude Desktop, Claude Code (`.mcp.json`), and other MCP clients:
 
 ```json
 {
   "mcpServers": {
     "content-pipeline": {
-      "command": "/usr/local/bin/uvx",
-      "args": ["mcp-content-pipeline"]
+      "command": "uv",
+      "args": ["run", "--directory", "/path/to/mcp-content-pipeline", "mcp-content-pipeline"]
     }
   }
 }
 ```
 
-No `env` block needed — all config comes from `.env`.
+To run the published package without a clone, use `uvx mcp-content-pipeline` and point it at your `.env`:
+
+```json
+{
+  "mcpServers": {
+    "content-pipeline": {
+      "command": "uvx",
+      "args": ["mcp-content-pipeline"],
+      "env": { "MCP_CP_ENV_FILE": "/path/to/.env" }
+    }
+  }
+}
+```
 
 ## Usage
 
@@ -88,7 +100,7 @@ Or with the full pipeline:
 
 ## Environment Variables
 
-All prefixed with `MCP_CP_`.
+All prefixed with `MCP_CP_` and set in `.env` — see `.env.example` for a ready-to-copy template.
 
 **Pipeline driver** — required for analyse_video, batch_analyse, analyse_x_feed
 
@@ -121,7 +133,7 @@ All prefixed with `MCP_CP_`.
 | Variable       | Required | Description                      |
 | --------------- | -------- | ----------------------------------- |
 | `X_BEARER_TOKEN`| Yes      | X API v2 bearer token                |
-| `X_ACCOUNTS`    | Yes      | Comma-separated usernames            |
+| `X_ACCOUNTS`    | No       | Default usernames, comma-separated — required unless `usernames` is passed to the tool |
 | `X_TOPICS`      | No       | Default: `AI,tech`                   |
 
 **Image generation** — required for generate_image
@@ -138,14 +150,14 @@ Estimated monthly costs for two usage patterns:
 
 | Service                       | Daily (every day)       | Weekly X + daily YouTube |
 | ----------------------------- | ----------------------- | ------------------------ |
-| YouTube analysis (Claude API) | ~$3–5/mo (1 video/day)  | ~$3–5/mo (1 video/day)   |
-| X feed digest (Claude API)    | ~$2–3/mo                | ~$0.50/mo                |
+| YouTube analysis (LLM API)    | ~$3–5/mo (1 video/day)  | ~$3–5/mo (1 video/day)   |
+| X feed digest (LLM API)       | ~$2–3/mo                | ~$0.50/mo                |
 | Image generation (Gemini API) | ~$2/mo ($0.067/image)   | ~$2/mo ($0.067/image)    |
 | X API reads                   | ~$4/mo ($0.13/day)      | ~$0.60/mo ($0.15/week)   |
 | Supadata transcript API       | ~$0 (free tier: 100/mo) | ~$0 (free tier: 100/mo)  |
-| **Total (excl. Claude API)**  | **~$6–9/mo**            | **~$3–5/mo**             |
+| **Total (excl. LLM API)**     | **~$6–9/mo**            | **~$3–5/mo**             |
 
-> Claude API costs depend on your Anthropic billing plan and are not included in the totals above. If you already use Claude Pro ($20/mo), there is no additional Claude cost. The X API spending cap can be configured in the [developer console](https://developer.x.com/).
+> LLM costs are estimated for the default `claude-sonnet-4-6` driver and vary with `PIPELINE_PROVIDER` / `PIPELINE_MODEL`; they are billed per token by the provider's API (a chat subscription such as Claude Pro does not cover API usage) and are not included in the totals. The X API spending cap can be configured in the [developer console](https://developer.x.com/).
 
 ### What this replaces
 
@@ -154,17 +166,17 @@ Estimated monthly costs for two usage patterns:
 | Google One AI Premium  | ~$20/mo     | Image generation via Gemini API (~$2/mo)                   |
 | X Premium              | ~$8/mo      | X feed reading via API (~$0.60–4/mo)                       |
 | YouTube Premium        | ~$14/mo     | Transcript extraction via Supadata (free tier)             |
-| **Total saved**        | **~$42/mo** | **Pipeline cost: ~$3–9/mo** (plus your existing Claude plan) |
+| **Total saved**        | **~$42/mo** | **Pipeline cost: ~$3–9/mo** (plus LLM API usage) |
 
 ## Eval Gates
 
-PRs touching system prompts or model config trigger a CI run via [mcp-llm-eval](https://github.com/berkayildi/mcp-llm-eval), scoring faithfulness/relevance across 8 models against a reference dataset; the PR is blocked below configured thresholds.
+PRs touching `services/`, `tools/`, `config.py`, `server.py`, `eval/`, `.eval-gate.yml` or `pyproject.toml` trigger a CI run via [mcp-llm-eval](https://github.com/berkayildi/mcp-llm-eval), scoring faithfulness/relevance across 8 models against a reference dataset; the PR is blocked below configured thresholds.
 
 See `.eval-gate.yml` for threshold configuration and `eval/dataset.json` for the test dataset.
 
 ### Running benchmarks locally
 
-The benchmark requires API keys for all providers. Create a `.env` file in the project root:
+The benchmark requires API keys for all three providers. Add them to the same `.env` (unprefixed — they are read by `mcp-llm-eval`, not the server):
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
@@ -186,16 +198,14 @@ Results are written to `eval/results/` (gitignored) and feed [LLMShot](https://l
 ## Development
 
 ```bash
-git clone https://github.com/berkayildi/mcp-content-pipeline.git
-cd mcp-content-pipeline
-uv sync
+uv run mcp-content-pipeline   # run the server from the clone
 uv run pytest -v --cov=src/mcp_content_pipeline
 uv run ruff check src/ tests/
 ```
 
 ## Security
 
-- Credentials live in a local `.env` (gitignored, see `.env.example`) or Claude Desktop config — never committed
+- Credentials live in a local `.env` (gitignored, see `.env.example`) — never committed, and never in MCP client config
 - All API keys stay on your machine; nothing is sent anywhere but the configured providers
 
 ## Contributing

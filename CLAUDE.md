@@ -1,6 +1,6 @@
 # mcp-content-pipeline
 
-YouTube video analysis and content pipeline exposed as MCP tools.
+YouTube video analysis and X feed digest pipeline exposed as MCP tools.
 
 ## Quick Start
 
@@ -14,12 +14,13 @@ uv run mcp-content-pipeline
 
 - `src/mcp_content_pipeline/server.py` — MCP server entry point, registers all tools
 - `src/mcp_content_pipeline/tools/` — one file per MCP tool
-- `src/mcp_content_pipeline/services/` — API clients (YouTube, Claude, GitHub)
+- `src/mcp_content_pipeline/config.py` — `Settings` (pydantic-settings, `MCP_CP_` prefix)
+- `src/mcp_content_pipeline/services/` — API clients (LLM driver, Supadata, YouTube, X, Gemini, GitHub)
 - `src/mcp_content_pipeline/models/` — Pydantic schemas
 
 ## Environment Variables
 
-All prefixed with `MCP_CP_`.
+All prefixed with `MCP_CP_` and kept in a local `.env` (gitignored; template in `.env.example`) — not in MCP client config. `server.main()` loads `MCP_CP_ENV_FILE` if set, otherwise the nearest `.env` from the working directory upwards; real environment variables win over `.env`. When adding a setting, update `config.py`, `.env.example`, this file and the README tables together.
 
 **Pipeline driver** — required for analyse_video, batch_analyse, analyse_x_feed:
 - `PIPELINE_PROVIDER` — `anthropic` | `openai` | `google` (default: anthropic). See `services/llm_client.py`.
@@ -36,10 +37,11 @@ All prefixed with `MCP_CP_`.
 - `GITHUB_REPO` — format: "owner/repo"
 - `GITHUB_BRANCH` — optional (default: main)
 - `GITHUB_OUTPUT_DIR` — optional (default: content/youtube)
+- `GITHUB_X_OUTPUT_DIR` — optional (default: content/x-digest)
 
 **X/Twitter** — required for analyse_x_feed:
 - `X_BEARER_TOKEN`
-- `X_ACCOUNTS` — comma-separated usernames
+- `X_ACCOUNTS` — comma-separated default usernames (required unless `usernames` is passed)
 - `X_TOPICS` — optional (default: AI,tech)
 
 **Image generation** — required for generate_image:
@@ -57,13 +59,11 @@ uv run ruff check src/ tests/
 ## Eval Gate
 
 ```bash
-# Run eval locally
-pip install mcp-llm-eval anthropic openai google-genai
-mcp-llm-eval run --config .eval-gate.yml --dataset eval/dataset.json --output-dir eval/results
-mcp-llm-eval check --results eval/results/latest_summary.json --config .eval-gate.yml
+make benchmark   # runs mcp-llm-eval via uvx with keys from .env
+uvx mcp-llm-eval check --results eval/results/latest_summary.json --config .eval-gate.yml
 ```
 
-Triggered automatically on PRs that change prompt files or model config. Benchmarks 8 models across Anthropic/OpenAI/Google.
+Triggered automatically on PRs touching `services/`, `tools/`, `config.py`, `server.py`, `eval/`, `.eval-gate.yml` or `pyproject.toml` (see `.github/workflows/eval-gate.yml`). Benchmarks 8 models across Anthropic/OpenAI/Google.
 
 ### Benchmark
 
@@ -72,7 +72,7 @@ make benchmark        # Run eval against all 8 models (~$0.68, ~5 minutes)
 make benchmark-copy   # Copy results to ../llm-benchmarks/text-generation/
 ```
 
-API keys must be set in `.env` (ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY).
+API keys must be set in `.env`, unprefixed (ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY).
 
 ## MCP Tools
 
