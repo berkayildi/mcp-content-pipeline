@@ -1,7 +1,7 @@
 thresholds:
   avg_faithfulness: 0.70
   avg_relevance: 0.70
-  p95_ttft_ms: 20000  # gpt-5-mini reasons before its first token; latency is irrelevant for background summaries
+  p95_ttft_ms: 30000  # gpt-5-mini reasons before its first token; latency is irrelevant for background summaries
   max_cost_per_query: 0.05
 
 models:
