@@ -19,13 +19,13 @@ class VideoAnalysis(BaseModel):
 
 class SyncFileResult(BaseModel):
     path: str
-    action: str  # "created" or "updated"
+    action: str  # "created", "updated" or "unchanged"
 
 
 class SyncResult(BaseModel):
     files: list[SyncFileResult]
     commit_sha: str | None = None
-    index_path: str | None = None
+    index_paths: list[str] = Field(default_factory=list)
 
 
 class XPost(BaseModel):

@@ -460,88 +460,131 @@ class TestGenerateXDigestIndex:
         assert "# X Feed Digests" in index
 
 
-class TestSyncSeparateDirectories:
-    """Tests that YouTube content and X digests go to separate directories."""
+def _mock_repo(existing: dict[str, str] | None = None):
+    """Mock repo whose get_contents serves `existing` paths and 404s the rest."""
+    from unittest.mock import MagicMock
 
-    @pytest.mark.asyncio
-    async def test_youtube_goes_to_youtube_dir(self):
-        from unittest.mock import MagicMock, patch
+    from github import GithubException
 
-        from github import GithubException
+    existing = existing or {}
 
-        mock_repo = MagicMock()
-        mock_repo.get_contents.side_effect = GithubException(404, "Not found", None)
-        mock_create_result = {"commit": MagicMock(sha="abc123")}
-        mock_repo.create_file.return_value = mock_create_result
+    def get_contents(path, ref=None):
+        if path not in existing:
+            raise GithubException(404, "Not found", None)
+        return MagicMock(decoded_content=existing[path].encode())
 
-        analysis = VideoAnalysis(
-            title="Test Video",
-            channel="C",
-            url="https://youtube.com/watch?v=1",
-            date_analysed="2026-03-08T12:00:00",
-            key_takeaways=["t"],
-            tldr="s",
-            topics=["t"],
+    repo = MagicMock()
+    repo.get_contents.side_effect = get_contents
+    repo.create_git_commit.return_value = MagicMock(sha="abc123")
+    repo.create_git_tree.return_value = MagicMock(sha="new-tree")
+    return repo
+
+
+async def _sync(repo, analyses=(), x_digests=None):
+    from unittest.mock import patch
+
+    from mcp_content_pipeline.services.github_client import sync_to_github as _sync_gh
+
+    with patch("mcp_content_pipeline.services.github_client.Github") as mock_github:
+        mock_github.return_value.get_repo.return_value = repo
+        return await _sync_gh(
+            token="token",
+            repo_name="owner/repo",
+            branch="main",
+            output_dir="content/youtube",
+            analyses=list(analyses),
+            commit_message="test",
+            x_digests=x_digests,
+            x_output_dir="content/x-digest",
         )
 
-        with patch("mcp_content_pipeline.services.github_client.Github") as mock_github:
-            mock_github.return_value.get_repo.return_value = mock_repo
-            from mcp_content_pipeline.services.github_client import sync_to_github as _sync_gh
 
-            result = await _sync_gh(
-                token="token",
-                repo_name="owner/repo",
-                branch="main",
-                output_dir="content/youtube",
-                analyses=[analysis],
-                commit_message="test",
-                x_output_dir="content/x-digest",
-            )
+def _tree_paths(repo) -> list[str]:
+    elements = repo.create_git_tree.call_args.args[0]
+    return [e._identity["path"] for e in elements]
 
-        # Verify YouTube files go to content/youtube/
-        md_calls = [c for c in mock_repo.create_file.call_args_list if c.args[0].endswith(".md")]
-        for call in md_calls:
-            assert call.args[0].startswith("content/youtube/")
-        assert result.index_path == "content/youtube/index.md"
+
+@pytest.fixture
+def digest():
+    return XDigestAnalysis(
+        title="Daily Digest",
+        date_analysed="2026-03-08T12:00:00",
+        accounts=["karpathy"],
+        topics=["AI"],
+        key_takeaways=["t"],
+        tldr="s",
+        post_count=5,
+    )
+
+
+class TestSyncSingleCommit:
+    @pytest.mark.asyncio
+    async def test_video_and_digest_in_one_commit(self, analysis, digest):
+        repo = _mock_repo()
+        result = await _sync(repo, [analysis], [digest])
+
+        repo.create_git_commit.assert_called_once()
+        repo.get_git_ref.return_value.edit.assert_called_once_with("abc123")
+        repo.create_file.assert_not_called()
+        repo.update_file.assert_not_called()
+        assert sorted(_tree_paths(repo)) == [
+            "content/x-digest/2026-03-08-x-digest.md",
+            "content/x-digest/index.md",
+            "content/youtube/2026-03-08-ml-in-production-3-strategies.md",
+            "content/youtube/index.md",
+        ]
+        assert result.commit_sha == "abc123"
+        assert result.index_paths == ["content/youtube/index.md", "content/x-digest/index.md"]
 
     @pytest.mark.asyncio
-    async def test_x_digest_goes_to_x_digest_dir(self):
-        from unittest.mock import MagicMock, patch
+    async def test_digest_only_leaves_youtube_index_alone(self, digest):
+        repo = _mock_repo()
+        result = await _sync(repo, [], [digest])
 
-        from github import GithubException
+        assert sorted(_tree_paths(repo)) == ["content/x-digest/2026-03-08-x-digest.md", "content/x-digest/index.md"]
+        assert result.index_paths == ["content/x-digest/index.md"]
 
-        mock_repo = MagicMock()
-        mock_repo.get_contents.side_effect = GithubException(404, "Not found", None)
-        mock_create_result = {"commit": MagicMock(sha="abc123")}
-        mock_repo.create_file.return_value = mock_create_result
+    @pytest.mark.asyncio
+    async def test_video_only_leaves_x_index_alone(self, analysis):
+        repo = _mock_repo()
+        await _sync(repo, [analysis])
 
-        digest = XDigestAnalysis(
-            title="Daily Digest",
-            date_analysed="2026-03-08T12:00:00",
-            accounts=["karpathy"],
-            topics=["AI"],
-            key_takeaways=["t"],
-            tldr="s",
-            post_count=5,
-        )
+        assert all(p.startswith("content/youtube/") for p in _tree_paths(repo))
 
-        with patch("mcp_content_pipeline.services.github_client.Github") as mock_github:
-            mock_github.return_value.get_repo.return_value = mock_repo
-            from mcp_content_pipeline.services.github_client import sync_to_github as _sync_gh
+    @pytest.mark.asyncio
+    async def test_nothing_to_sync_makes_no_commit(self):
+        repo = _mock_repo()
+        result = await _sync(repo, [], None)
 
-            await _sync_gh(
-                token="token",
-                repo_name="owner/repo",
-                branch="main",
-                output_dir="content/youtube",
-                analyses=[],
-                commit_message="test",
-                x_digests=[digest],
-                x_output_dir="content/x-digest",
-            )
+        repo.create_git_commit.assert_not_called()
+        assert result.files == []
+        assert result.commit_sha is None
 
-        # Verify X digest files go to content/x-digest/
-        x_calls = [c for c in mock_repo.create_file.call_args_list if "x-digest" in c.args[0]]
-        assert len(x_calls) >= 1
-        for call in x_calls:
-            assert call.args[0].startswith("content/x-digest/")
+    @pytest.mark.asyncio
+    async def test_created_vs_updated_and_index_merge(self, analysis):
+        existing_md = "content/youtube/2026-03-08-ml-in-production-3-strategies.md"
+        old_row = "| 2026-01-01 | Old Video | [2026-01-01-old-video.md](./2026-01-01-old-video.md) |"
+        repo = _mock_repo({
+            existing_md: "old",
+            "content/youtube/index.md": f"# YouTube Analyses\n\n| Date | Title | File |\n|------|-------|------|\n{old_row}\n",
+        })
+        result = await _sync(repo, [analysis])
+
+        assert result.files[0].action == "updated"
+        index = next(e for e in repo.create_git_tree.call_args.args[0] if e._identity["path"] == "content/youtube/index.md")
+        assert old_row in index._identity["content"]
+        assert "ML in Production: 3 Strategies" in index._identity["content"]
+
+    @pytest.mark.asyncio
+    async def test_identical_content_makes_no_commit(self, analysis):
+        from mcp_content_pipeline.services.github_client import generate_markdown
+
+        path = "content/youtube/2026-03-08-ml-in-production-3-strategies.md"
+        repo = _mock_repo({path: generate_markdown(analysis)})
+        repo.create_git_tree.return_value = repo.get_git_commit.return_value.tree
+        result = await _sync(repo, [analysis])
+
+        repo.create_git_commit.assert_not_called()
+        repo.get_git_ref.return_value.edit.assert_not_called()
+        assert result.files[0].action == "unchanged"
+        assert result.commit_sha is None

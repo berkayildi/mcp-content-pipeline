@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from datetime import datetime
 
-from github import Auth, Github, GithubException
+from github import Auth, Github, GithubException, InputGitTreeElement
 from slugify import slugify
 
 from mcp_content_pipeline.models.schemas import SyncFileResult, SyncResult, VideoAnalysis, XDigestAnalysis
@@ -169,6 +169,14 @@ def _extract_date_from_row(row: str) -> str:
     return ""
 
 
+def _read_file(repo, path: str, branch: str) -> str | None:
+    """Return a file's text on branch, or None if it does not exist."""
+    try:
+        return repo.get_contents(path, ref=branch).decoded_content.decode()  # type: ignore[union-attr]
+    except GithubException:
+        return None
+
+
 async def sync_to_github(
     token: str,
     repo_name: str,
@@ -179,115 +187,48 @@ async def sync_to_github(
     x_digests: list[XDigestAnalysis] | None = None,
     x_output_dir: str | None = None,
 ) -> SyncResult:
-    """Push analysis markdown files to GitHub."""
+    """Push analysis markdown files and their indexes to GitHub as a single commit."""
+    x_digests = x_digests or []
+    if not analyses and not x_digests:
+        return SyncResult(files=[])
+
     g = Github(auth=Auth.Token(token))
     repo = g.get_repo(repo_name)
-
-    file_results: list[SyncFileResult] = []
-
-    for analysis in analyses:
-        filepath = generate_filename(analysis, output_dir)
-        content = generate_markdown(analysis)
-
-        try:
-            existing = repo.get_contents(filepath, ref=branch)
-            repo.update_file(
-                filepath,
-                commit_message,
-                content,
-                existing.sha,  # type: ignore[union-attr]
-                branch=branch,
-            )
-            file_results.append(SyncFileResult(path=filepath, action="updated"))
-        except GithubException:
-            repo.create_file(filepath, commit_message, content, branch=branch)
-            file_results.append(SyncFileResult(path=filepath, action="created"))
-
-    # Sync X digest files to separate directory
     x_dir = x_output_dir or output_dir
-    for digest in x_digests or []:
-        filepath = generate_x_digest_filename(digest, x_dir)
-        content = generate_x_digest_markdown(digest)
 
-        try:
-            existing = repo.get_contents(filepath, ref=branch)
-            repo.update_file(
-                filepath,
-                commit_message,
-                content,
-                existing.sha,  # type: ignore[union-attr]
-                branch=branch,
-            )
-            file_results.append(SyncFileResult(path=filepath, action="updated"))
-        except GithubException:
-            repo.create_file(filepath, commit_message, content, branch=branch)
-            file_results.append(SyncFileResult(path=filepath, action="created"))
+    changes: dict[str, str] = {}
+    for analysis in analyses:
+        changes[generate_filename(analysis, output_dir)] = generate_markdown(analysis)
+    for digest in x_digests:
+        changes[generate_x_digest_filename(digest, x_dir)] = generate_x_digest_markdown(digest)
 
-    # Update X digest index.md if there are digests
+    file_results = []
+    for path, content in changes.items():
+        current = _read_file(repo, path, branch)
+        action = "created" if current is None else "unchanged" if current == content else "updated"
+        file_results.append(SyncFileResult(path=path, action=action))
+
+    # Indexes only change for the content type being synced
+    index_paths: list[str] = []
+    if analyses:
+        path = f"{output_dir}/index.md"
+        changes[path] = generate_index(analyses, output_dir, _read_file(repo, path, branch))
+        index_paths.append(path)
     if x_digests:
-        x_index_path = f"{x_dir}/index.md"
-        existing_x_index_content: str | None = None
-        existing_x_index_sha: str | None = None
+        path = f"{x_dir}/index.md"
+        changes[path] = generate_x_digest_index(x_digests, x_dir, _read_file(repo, path, branch))
+        index_paths.append(path)
 
-        try:
-            existing_x_index = repo.get_contents(x_index_path, ref=branch)
-            existing_x_index_content = existing_x_index.decoded_content.decode()  # type: ignore[union-attr]
-            existing_x_index_sha = existing_x_index.sha  # type: ignore[union-attr]
-        except GithubException:
-            pass
-
-        x_index_content = generate_x_digest_index(x_digests, x_dir, existing_x_index_content)
-
-        if existing_x_index_sha:
-            repo.update_file(
-                x_index_path,
-                f"{commit_message} (update x-digest index)",
-                x_index_content,
-                existing_x_index_sha,
-                branch=branch,
-            )
-        else:
-            repo.create_file(
-                x_index_path,
-                f"{commit_message} (update x-digest index)",
-                x_index_content,
-                branch=branch,
-            )
-
-    # Update index.md — read existing content first to preserve previous entries
-    index_path = f"{output_dir}/index.md"
-    existing_index_content: str | None = None
-    existing_index_sha: str | None = None
-
-    try:
-        existing_index = repo.get_contents(index_path, ref=branch)
-        existing_index_content = existing_index.decoded_content.decode()  # type: ignore[union-attr]
-        existing_index_sha = existing_index.sha  # type: ignore[union-attr]
-    except GithubException:
-        pass
-
-    index_content = generate_index(analyses, output_dir, existing_index_content)
-
-    if existing_index_sha:
-        result = repo.update_file(
-            index_path,
-            f"{commit_message} (update index)",
-            index_content,
-            existing_index_sha,
-            branch=branch,
-        )
-    else:
-        result = repo.create_file(
-            index_path,
-            f"{commit_message} (update index)",
-            index_content,
-            branch=branch,
-        )
-
-    commit_sha = result["commit"].sha if result else None
-
-    return SyncResult(
-        files=file_results,
-        commit_sha=commit_sha,
-        index_path=index_path,
+    ref = repo.get_git_ref(f"heads/{branch}")
+    parent = repo.get_git_commit(ref.object.sha)
+    tree = repo.create_git_tree(
+        [InputGitTreeElement(path, "100644", "blob", content=content) for path, content in changes.items()],
+        parent.tree,
     )
+    if tree.sha == parent.tree.sha:
+        return SyncResult(files=file_results, index_paths=index_paths)
+
+    commit = repo.create_git_commit(commit_message, tree, [parent])
+    ref.edit(commit.sha)
+
+    return SyncResult(files=file_results, commit_sha=commit.sha, index_paths=index_paths)
