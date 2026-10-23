@@ -5,12 +5,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/pypi/pyversions/mcp-content-pipeline)](https://pypi.org/project/mcp-content-pipeline/)
 
-A content analysis and digest pipeline for YouTube videos and X (Twitter) feeds, exposed as [MCP](https://modelcontextprotocol.io/) tools: extract transcripts, fetch posts from curated accounts, generate key takeaways/TLDRs/social hooks/infographics, sync to GitHub.
+A content analysis and digest pipeline for YouTube videos and X (Twitter) feeds, exposed as [MCP](https://modelcontextprotocol.io/) tools: extract English transcripts, fetch posts from curated accounts, generate TL;DRs/key points/infographics, sync to GitHub.
 
 ```mermaid
 flowchart LR
-    A[YouTube URL<br/>or X feed] --> B[Extract content<br/>Supadata / X API]
-    B --> C[LLM analysis<br/>takeaways, TLDR, hook]
+    A[YouTube URL<br/>or X feed] --> B[Extract content<br/>YouTube captions / X API]
+    B --> C[LLM analysis<br/>TL;DR, key points]
     C --> D[Gemini image<br/>comic infographic]
     D --> E[Sync to GitHub<br/>markdown + image]
 ```
@@ -91,8 +91,7 @@ Or with the full pipeline:
 
 | Tool                  | Description                                                               | Requires                                |
 | --------------------- | ------------------------------------------------------------------------- | --------------------------------------- |
-| `analyse_video`       | Analyse a single YouTube video — transcript, takeaways, TLDR, social hook | `PIPELINE_API_KEY`, `SUPADATA_API_KEY` |
-| `batch_analyse`       | Analyse multiple videos from a URL list or config file                    | `PIPELINE_API_KEY`, `SUPADATA_API_KEY` |
+| `analyse_video`       | Analyse a single YouTube video (English captions) — TL;DR and key points  | `PIPELINE_API_KEY`                      |
 | `list_channel_videos` | Fetch recent videos from a YouTube channel                                | `YOUTUBE_API_KEY`                       |
 | `sync_to_github`      | Push analyses as markdown files to a GitHub repo                          | `GITHUB_TOKEN`, `GITHUB_REPO`           |
 | `analyse_x_feed`      | Analyse recent posts from curated X accounts — daily digest               | `PIPELINE_API_KEY`, `X_BEARER_TOKEN`    |
@@ -102,7 +101,7 @@ Or with the full pipeline:
 
 All prefixed with `MCP_CP_` and set in `.env` — see `.env.example` for a ready-to-copy template.
 
-**Pipeline driver** — required for analyse_video, batch_analyse, analyse_x_feed
+**Pipeline driver** — required for analyse_video, analyse_x_feed
 
 | Variable            | Required | Description                                                               |
 | -------------------- | -------- | -------------------------------------------------------------------------- |
@@ -110,11 +109,10 @@ All prefixed with `MCP_CP_` and set in `.env` — see `.env.example` for a ready
 | `PIPELINE_API_KEY`   | Yes      | API key for the selected provider                                          |
 | `PIPELINE_MODEL`     | No       | Model name valid for the selected provider (default: `claude-sonnet-4-6`)  |
 
-**YouTube** — required for analyse_video, batch_analyse
+**YouTube** — transcripts come from public English captions, no key needed
 
 | Variable               | Required | Description                                          |
 | ----------------------- | -------- | ------------------------------------------------------ |
-| `SUPADATA_API_KEY`      | Yes      | Transcript extraction                                   |
 | `YOUTUBE_API_KEY`       | No       | Only for `list_channel_videos`                          |
 | `MAX_TRANSCRIPT_TOKENS` | No       | Default: `100000`                                       |
 
@@ -154,7 +152,6 @@ Estimated monthly costs for two usage patterns:
 | X feed digest (LLM API)       | ~$2–3/mo                | ~$0.50/mo                |
 | Image generation (Gemini API) | ~$2/mo ($0.067/image)   | ~$2/mo ($0.067/image)    |
 | X API reads                   | ~$4/mo ($0.13/day)      | ~$0.60/mo ($0.15/week)   |
-| Supadata transcript API       | ~$0 (free tier: 100/mo) | ~$0 (free tier: 100/mo)  |
 | **Total (excl. LLM API)**     | **~$6–9/mo**            | **~$3–5/mo**             |
 
 > LLM costs are estimated for the default `claude-sonnet-4-6` driver and vary with `PIPELINE_PROVIDER` / `PIPELINE_MODEL`; they are billed per token by the provider's API (a chat subscription such as Claude Pro does not cover API usage) and are not included in the totals. The X API spending cap can be configured in the [developer console](https://developer.x.com/).
@@ -165,7 +162,7 @@ Estimated monthly costs for two usage patterns:
 | --------------------- | ------------ | ---------------------------------------------------------- |
 | Google One AI Premium  | ~$20/mo     | Image generation via Gemini API (~$2/mo)                   |
 | X Premium              | ~$8/mo      | X feed reading via API (~$0.60–4/mo)                       |
-| YouTube Premium        | ~$14/mo     | Transcript extraction via Supadata (free tier)             |
+| YouTube Premium        | ~$14/mo     | Transcript extraction from public captions (free)          |
 | **Total saved**        | **~$42/mo** | **Pipeline cost: ~$3–9/mo** (plus LLM API usage) |
 
 ## Eval Gates

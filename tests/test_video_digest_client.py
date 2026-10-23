@@ -47,7 +47,6 @@ class TestParseAnalysisResponse:
             "date_analysed": "2026-03-08T12:00:00",
             "key_takeaways": ["t1", "t2"],
             "tldr": "Summary",
-            "twitter_hook": "Hook text #test",
             "topics": ["topic1"],
         }
         result = parse_analysis_response(json.dumps(data), sample_video_metadata)
@@ -62,7 +61,6 @@ class TestParseAnalysisResponse:
             "date_analysed": "2026-03-08T12:00:00",
             "key_takeaways": ["t1"],
             "tldr": "s",
-            "twitter_hook": "h",
             "topics": ["t"],
         }
         raw = f"```json\n{json.dumps(data)}\n```"
@@ -77,7 +75,6 @@ class TestParseAnalysisResponse:
             "date_analysed": "2026-03-08T12:00:00",
             "key_takeaways": ["t1"],
             "tldr": "s",
-            "twitter_hook": "h",
             "topics": ["t"],
         }
         raw = f"```\n{json.dumps(data)}\n```"
@@ -89,7 +86,6 @@ class TestParseAnalysisResponse:
             "date_analysed": "2026-03-08T12:00:00",
             "key_takeaways": ["t1"],
             "tldr": "s",
-            "twitter_hook": "h",
             "topics": ["t"],
         }
         result = parse_analysis_response(json.dumps(data), sample_video_metadata)
@@ -108,7 +104,6 @@ class TestParseAnalysisResponse:
             "date_analysed": "1999-01-01T00:00:00",
             "key_takeaways": ["t1", "t2"],
             "tldr": "Summary",
-            "twitter_hook": "Hook text #test",
             "topics": ["topic1"],
         }
         result = parse_analysis_response(json.dumps(data), sample_video_metadata)

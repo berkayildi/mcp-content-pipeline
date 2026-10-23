@@ -15,20 +15,19 @@ uv run mcp-content-pipeline
 - `src/mcp_content_pipeline/server.py` — MCP server entry point, registers all tools
 - `src/mcp_content_pipeline/tools/` — one file per MCP tool
 - `src/mcp_content_pipeline/config.py` — `Settings` (pydantic-settings, `MCP_CP_` prefix)
-- `src/mcp_content_pipeline/services/` — API clients (LLM driver, Supadata, YouTube, X, Gemini, GitHub)
+- `src/mcp_content_pipeline/services/` — API clients (LLM driver, YouTube transcripts, YouTube Data API, X, Gemini, GitHub)
 - `src/mcp_content_pipeline/models/` — Pydantic schemas
 
 ## Environment Variables
 
 All prefixed with `MCP_CP_` and kept in a local `.env` (gitignored; template in `.env.example`) — not in MCP client config. `server.main()` loads `MCP_CP_ENV_FILE` if set, otherwise the nearest `.env` from the working directory upwards; real environment variables win over `.env`. When adding a setting, update `config.py`, `.env.example`, this file and the README tables together.
 
-**Pipeline driver** — required for analyse_video, batch_analyse, analyse_x_feed:
+**Pipeline driver** — required for analyse_video, analyse_x_feed:
 - `PIPELINE_PROVIDER` — `anthropic` | `openai` | `google` (default: anthropic). See `services/llm_client.py`.
 - `PIPELINE_API_KEY` — API key for the selected provider
 - `PIPELINE_MODEL` — model name valid for the selected provider (default: claude-sonnet-4-6)
 
-**YouTube** — required for analyse_video, batch_analyse:
-- `SUPADATA_API_KEY` — transcript extraction
+**YouTube** — transcripts come from public English captions via `services/transcript.py`, no key needed:
 - `YOUTUBE_API_KEY` — optional, only for list_channel_videos
 - `MAX_TRANSCRIPT_TOKENS` — optional (default: 100000)
 
@@ -76,9 +75,8 @@ API keys must be set in `.env`, unprefixed (ANTHROPIC_API_KEY, OPENAI_API_KEY, G
 
 ## MCP Tools
 
-1. `analyse_video` — analyse a single YouTube video
-2. `batch_analyse` — analyse multiple videos
-3. `list_channel_videos` — fetch recent videos from a channel
-4. `sync_to_github` — push analyses as markdown to GitHub
-5. `generate_image` — generate a comic-book infographic from an analysis result
-6. `analyse_x_feed` — analyse recent posts from curated X accounts
+1. `analyse_video` — analyse a single YouTube video (TL;DR + key points)
+2. `list_channel_videos` — fetch recent videos from a channel
+3. `sync_to_github` — push analyses as markdown to GitHub
+4. `generate_image` — generate a comic-book infographic from an analysis result
+5. `analyse_x_feed` — analyse recent posts from curated X accounts

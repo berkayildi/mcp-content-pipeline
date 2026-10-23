@@ -1,13 +1,18 @@
-"""YouTube transcript extraction via Supadata API."""
+"""YouTube English transcript extraction via the public InnerTube player endpoint."""
 
 from __future__ import annotations
 
+import html
 import re
 
 import httpx
 
 HTTP_TIMEOUT = 30.0
-COMMON_LANGS = ["tr", "es", "pt", "fr", "de", "ja", "ko", "zh", "ar", "hi"]
+PLAYER_URL = "https://www.youtube.com/youtubei/v1/player"
+# ANDROID client returns caption URLs that need no PoToken
+CLIENT_VERSION = "20.10.38"
+PLAYER_CONTEXT = {"client": {"clientName": "ANDROID", "clientVersion": CLIENT_VERSION}}
+PLAYER_HEADERS = {"User-Agent": f"com.google.android.youtube/{CLIENT_VERSION} (Linux; U; Android 14)"}
 
 
 def parse_video_id(url: str) -> str:
@@ -23,73 +28,55 @@ def parse_video_id(url: str) -> str:
     raise ValueError(f"Could not parse video ID from URL: {url}")
 
 
-async def fetch_transcript(
-    url: str, max_tokens: int = 100000, supadata_api_key: str = ""
-) -> tuple[str, str, str | None]:
-    """Fetch transcript for a YouTube video via Supadata API; returns (text, lang, title)."""
-    if not supadata_api_key:
-        raise ValueError("Supadata API key is required for transcript extraction")
-
-    headers = {"x-api-key": supadata_api_key}
-    base_params = {"url": url, "text": "true", "mode": "auto"}
-
+async def fetch_transcript(video_id: str, max_tokens: int = 100000) -> tuple[str, dict]:
+    """Fetch the English transcript and metadata for a video; returns (text, {title, channel, url})."""
     async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
-        # Step 1: Try English
-        resp = await client.get(
-            "https://api.supadata.ai/v1/transcript",
-            headers=headers,
-            params={**base_params, "lang": "en"},
+        resp = await client.post(
+            PLAYER_URL,
+            json={"context": PLAYER_CONTEXT, "videoId": video_id},
+            headers=PLAYER_HEADERS,
         )
-        if resp.status_code == 200:
-            text = resp.text.strip()
-            if text:
-                title = _extract_title(resp)
-                return _truncate(text, max_tokens), "en", title
+        resp.raise_for_status()
+        player = resp.json()
 
-        # Step 2: Check available languages from response
-        if resp.status_code in (200, 206):
-            try:
-                data = resp.json()
-                available_langs = data.get("availableLangs", [])
-                for lang in available_langs:
-                    resp2 = await client.get(
-                        "https://api.supadata.ai/v1/transcript",
-                        headers=headers,
-                        params={**base_params, "lang": lang},
-                    )
-                    if resp2.status_code == 200:
-                        text = resp2.text.strip()
-                        if text:
-                            title = _extract_title(resp2)
-                            return _truncate(text, max_tokens), lang, title
-            except Exception:
-                pass
+        status = player.get("playabilityStatus", {})
+        if status.get("status") != "OK":
+            raise ValueError(f"Video {video_id} is not playable: {status.get('reason') or status.get('status')}")
 
-        # Step 3: Try common languages directly
-        for lang in COMMON_LANGS:
-            resp3 = await client.get(
-                "https://api.supadata.ai/v1/transcript",
-                headers=headers,
-                params={**base_params, "lang": lang},
-            )
-            if resp3.status_code == 200:
-                text = resp3.text.strip()
-                if text:
-                    title = _extract_title(resp3)
-                    return _truncate(text, max_tokens), lang, title
+        tracks = player.get("captions", {}).get("playerCaptionsTracklistRenderer", {}).get("captionTracks", [])
+        track = _pick_english_track(tracks)
+        if track is None:
+            raise ValueError(f"No English transcript available for video {video_id}")
 
-    raise ValueError(f"No transcript available for: {url}")
+        caption_resp = await client.get(track["baseUrl"])
+        caption_resp.raise_for_status()
+
+    text = parse_caption_xml(caption_resp.text)
+    if not text:
+        raise ValueError(f"Empty English transcript for video {video_id}")
+
+    details = player.get("videoDetails", {})
+    metadata = {
+        "title": details.get("title") or "Unknown Title",
+        "channel": details.get("author") or "Unknown Channel",
+        "url": f"https://www.youtube.com/watch?v={video_id}",
+    }
+    return _truncate(text, max_tokens), metadata
 
 
-def _extract_title(resp: httpx.Response) -> str | None:
-    """Try to extract a title field from a Supadata JSON response."""
-    try:
-        data = resp.json()
-        if isinstance(data, dict):
-            return data.get("title") or None
-    except Exception:
-        return None
-    return None
+def _pick_english_track(tracks: list[dict]) -> dict | None:
+    """Prefer a manual English track over an auto-generated (asr) one."""
+    english = [t for t in tracks if t.get("languageCode", "").split("-")[0] == "en"]
+    manual = [t for t in english if t.get("kind") != "asr"]
+    return (manual or english or [None])[0]
+
+
+def parse_caption_xml(xml: str) -> str:
+    """Flatten timedtext XML (srv1 <text> or srv3 <p>) into plain text."""
+    segments = re.findall(r"<(?:p|text)\b[^>]*>(.*?)</(?:p|text)>", xml, re.S)
+    # srv3 nests <s> word tags; entities can be double-escaped
+    cleaned = (html.unescape(html.unescape(re.sub(r"<[^>]+>", "", s))) for s in segments)
+    return " ".join(" ".join(c.split()) for c in cleaned if c.strip())
 
 
 def _truncate(text: str, max_tokens: int) -> str:
@@ -98,29 +85,3 @@ def _truncate(text: str, max_tokens: int) -> str:
     if len(text) > max_chars:
         return text[:max_chars] + "\n\n[Transcript truncated due to length]"
     return text
-
-
-async def fetch_video_metadata(video_id_or_url: str) -> dict:
-    """Fetch video metadata via oembed; /live/ URLs are normalised first since oEmbed rejects them."""
-    try:
-        video_id = parse_video_id(video_id_or_url)
-    except ValueError:
-        video_id = video_id_or_url
-    watch_url = f"https://www.youtube.com/watch?v={video_id}"
-    url = f"https://www.youtube.com/oembed?url={watch_url}&format=json"
-    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
-        resp = await client.get(url)
-        if resp.status_code in (401, 403):
-            return {
-                "title": "Unknown Title",
-                "channel": "Unknown Channel",
-                "url": f"https://www.youtube.com/watch?v={video_id}",
-            }
-        resp.raise_for_status()
-        data = resp.json()
-
-    return {
-        "title": data.get("title", "Unknown Title"),
-        "channel": data.get("author_name", "Unknown Channel"),
-        "url": f"https://www.youtube.com/watch?v={video_id}",
-    }

@@ -27,7 +27,6 @@ dependencies = [
     "pydantic-settings",
     "python-dotenv",
     "python-slugify",
-    "pyyaml",
     "httpx",
 ]
 

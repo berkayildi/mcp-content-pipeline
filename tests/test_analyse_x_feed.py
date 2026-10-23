@@ -231,6 +231,5 @@ class TestXDigestToVideoAnalysis:
         assert result.url == ""
         assert result.key_takeaways == sample_digest.key_takeaways
         assert result.tldr == sample_digest.tldr
-        assert result.twitter_hook == sample_digest.twitter_hook
         assert result.topics == sample_digest.topics
         assert result.date_analysed == sample_digest.date_analysed

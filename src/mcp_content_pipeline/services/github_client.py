@@ -25,17 +25,9 @@ def generate_markdown(analysis: VideoAnalysis) -> str:
 
 ---
 
-## Key Takeaways
+**TL;DR:** {analysis.tldr}
 
 {takeaways}
-
-## TLDR
-
-{analysis.tldr}
-
-## Social Hook
-
-> {analysis.twitter_hook}
 """
 
 

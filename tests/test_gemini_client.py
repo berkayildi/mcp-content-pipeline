@@ -20,7 +20,6 @@ def analysis():
         date_analysed="2026-03-08T12:00:00",
         key_takeaways=["Takeaway 1", "Takeaway 2", "Takeaway 3"],
         tldr="A summary of AI news.",
-        twitter_hook="AI is changing everything #AI",
         topics=["AI", "Machine Learning"],
     )
 
@@ -48,7 +47,6 @@ class TestBuildImagePrompt:
             date_analysed="2026-03-08T12:00:00",
             key_takeaways=[f"Takeaway {i}" for i in range(10)],
             tldr="s",
-            twitter_hook="h",
             topics=["t"],
         )
         prompt = build_image_prompt(analysis)
@@ -63,7 +61,6 @@ class TestBuildImagePrompt:
             date_analysed="2026-03-08T12:00:00",
             key_takeaways=[],
             tldr="s",
-            twitter_hook="h",
             topics=["t"],
         )
         prompt = build_image_prompt(analysis)

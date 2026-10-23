@@ -57,11 +57,6 @@ def sample_analysis_result():
             "Deploy ML models reliably by versioning them with code, running shadow deployments, "
             "and monitoring data drift. A fintech company reduced model incidents by 73% with these practices."
         ),
-        twitter_hook=(
-            "Shadow deployments catch ML bugs that unit tests completely miss. "
-            "One fintech cut model incidents by 73% with 3 simple practices "
-            "#MLOps #MachineLearning #AI"
-        ),
         topics=["MLOps", "Machine Learning", "Production Engineering", "DevOps"],
     )
 

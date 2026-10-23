@@ -25,7 +25,6 @@ class Settings(BaseSettings):
     gemini_model: str = "gemini-3.1-flash-image-preview"
     image_output_dir: str = ""
     max_transcript_tokens: int = 100000
-    supadata_api_key: str = ""
     x_bearer_token: str = ""
     x_accounts: str | list[str] = []
     x_topics: str | list[str] = []

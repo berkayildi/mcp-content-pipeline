@@ -4,11 +4,7 @@ from __future__ import annotations
 
 from mcp_content_pipeline.config import Settings
 from mcp_content_pipeline.models.schemas import VideoAnalysis
-from mcp_content_pipeline.services.transcript import (
-    fetch_transcript,
-    fetch_video_metadata,
-    parse_video_id,
-)
+from mcp_content_pipeline.services.transcript import fetch_transcript, parse_video_id
 from mcp_content_pipeline.services.video_digest_client import analyse_transcript
 
 
@@ -18,26 +14,14 @@ async def analyse_video(
     custom_prompt: str | None = None,
 ) -> VideoAnalysis:
     """Analyse a single YouTube video."""
-    if not settings.supadata_api_key:
-        raise ValueError("MCP_CP_SUPADATA_API_KEY is required for YouTube video analysis")
-
     video_id = parse_video_id(url)
-    transcript_text, transcript_lang, supadata_title = await fetch_transcript(
-        url, settings.max_transcript_tokens, settings.supadata_api_key
-    )
-    metadata = await fetch_video_metadata(video_id)
+    transcript_text, metadata = await fetch_transcript(video_id, settings.max_transcript_tokens)
 
-    if supadata_title and metadata.get("title") == "Unknown Title":
-        metadata["title"] = supadata_title
-
-    analysis = await analyse_transcript(
+    return await analyse_transcript(
         api_key=settings.pipeline_api_key,
         model=settings.pipeline_model,
         transcript=transcript_text,
         metadata=metadata,
         custom_prompt=custom_prompt,
-        transcript_lang=transcript_lang,
         provider=settings.pipeline_provider,
     )
-
-    return analysis

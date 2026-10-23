@@ -21,7 +21,6 @@ def valid_analysis_dict():
         "date_analysed": "2026-03-08T12:00:00",
         "key_takeaways": ["Takeaway 1", "Takeaway 2"],
         "tldr": "A short summary.",
-        "twitter_hook": "Hook #AI",
         "topics": ["AI"],
     }
 

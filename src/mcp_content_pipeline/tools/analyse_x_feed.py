@@ -17,7 +17,6 @@ def x_digest_to_video_analysis(digest: XDigestAnalysis) -> VideoAnalysis:
         date_analysed=digest.date_analysed,
         key_takeaways=digest.key_takeaways,
         tldr=digest.tldr,
-        twitter_hook=digest.twitter_hook,
         topics=digest.topics,
     )
 

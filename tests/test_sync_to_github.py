@@ -27,7 +27,6 @@ def analysis():
         date_analysed="2026-03-08T12:00:00",
         key_takeaways=["Takeaway 1", "Takeaway 2", "Takeaway 3"],
         tldr="A short summary of the video content.",
-        twitter_hook="Bold claim about ML #MLOps #AI",
         topics=["MLOps", "AI"],
     )
 
@@ -55,10 +54,11 @@ class TestGenerateMarkdown:
         md = generate_markdown(analysis)
         assert "A short summary of the video content." in md
 
-    def test_markdown_contains_social_hook(self, analysis):
+    def test_markdown_tldr_before_points(self, analysis):
         md = generate_markdown(analysis)
-        assert "## Social Hook" in md
-        assert "> Bold claim about ML #MLOps #AI" in md
+        assert f"**TL;DR:** {analysis.tldr}" in md
+        assert md.index("**TL;DR:**") < md.index(f"- {analysis.key_takeaways[0]}")
+        assert "Social Hook" not in md
 
     def test_markdown_contains_topics(self, analysis):
         md = generate_markdown(analysis)
@@ -78,7 +78,6 @@ class TestGenerateFilename:
             date_analysed="2026-01-15T10:00:00",
             key_takeaways=["t1"],
             tldr="summary",
-            twitter_hook="hook",
             topics=["AI"],
         )
         filename = generate_filename(a, "output")
@@ -94,7 +93,6 @@ class TestGenerateFilename:
             date_analysed="2026-01-01T00:00:00",
             key_takeaways=["t1"],
             tldr="s",
-            twitter_hook="h",
             topics=["t"],
         )
         filename = generate_filename(a, "out")
@@ -125,7 +123,6 @@ class TestGenerateIndex:
             date_analysed="2026-03-08T12:00:00",
             key_takeaways=["t"],
             tldr="s",
-            twitter_hook="h",
             topics=["t"],
         )
         a2 = VideoAnalysis(
@@ -135,7 +132,6 @@ class TestGenerateIndex:
             date_analysed="2026-03-09T12:00:00",
             key_takeaways=["t"],
             tldr="s",
-            twitter_hook="h",
             topics=["t"],
         )
         index = generate_index([a1, a2], "content/youtube")
@@ -158,7 +154,6 @@ class TestIndexMergeBehavior:
             date_analysed=date,
             key_takeaways=["t"],
             tldr="s",
-            twitter_hook="h",
             topics=["t"],
         )
 
@@ -269,7 +264,6 @@ class TestPipeEscaping:
             date_analysed=date,
             key_takeaways=["t"],
             tldr="s",
-            twitter_hook="h",
             topics=["t"],
         )
 
@@ -660,7 +654,6 @@ class TestSyncSeparateDirectories:
             date_analysed="2026-03-08T12:00:00",
             key_takeaways=["t"],
             tldr="s",
-            twitter_hook="h",
             topics=["t"],
         )
 

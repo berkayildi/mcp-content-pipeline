@@ -1,4 +1,4 @@
-"""Provider-agnostic text-completion driver for analyse_video, batch_analyse, analyse_x_feed."""
+"""Provider-agnostic text-completion driver for analyse_video and analyse_x_feed."""
 
 from __future__ import annotations
 

@@ -12,7 +12,6 @@ from mcp_content_pipeline.config import get_settings
 from mcp_content_pipeline.models.schemas import VideoAnalysis, XDigestAnalysis
 from mcp_content_pipeline.tools.analyse_video import analyse_video as _analyse_video
 from mcp_content_pipeline.tools.analyse_x_feed import analyse_x_feed as _analyse_x_feed
-from mcp_content_pipeline.tools.batch_analyse import batch_analyse as _batch_analyse
 from mcp_content_pipeline.tools.generate_image import generate_image as _generate_image
 from mcp_content_pipeline.tools.list_channel_videos import (
     list_channel_videos as _list_channel_videos,
@@ -24,11 +23,11 @@ mcp = FastMCP("mcp-content-pipeline")
 
 @mcp.tool()
 async def analyse_video(url: str, custom_prompt: str | None = None) -> str:
-    """Analyse a single YouTube video — extracts transcript, generates key takeaways, TLDR, and social hook.
+    """Analyse a single YouTube video — extracts the English transcript, generates a TL;DR and key points.
 
     Use this tool when the user provides a YouTube URL or asks to analyse a
     YouTube video. Supports youtube.com/watch, youtu.be, youtube.com/shorts,
-    and youtube.com/live URLs. Works with videos in any language.
+    and youtube.com/live URLs. The video must have English captions.
 
     Args:
         url: YouTube video URL
@@ -36,19 +35,6 @@ async def analyse_video(url: str, custom_prompt: str | None = None) -> str:
     """
     settings = get_settings()
     result = await _analyse_video(url=url, settings=settings, custom_prompt=custom_prompt)
-    return result.model_dump_json(indent=2)
-
-
-@mcp.tool()
-async def batch_analyse(urls: list[str] | None = None, config_file: str | None = None) -> str:
-    """Analyse multiple YouTube videos from a list of URLs or a config file path.
-
-    Args:
-        urls: List of YouTube URLs to analyse
-        config_file: Path to a YAML/JSON file containing a list of URLs
-    """
-    settings = get_settings()
-    result = await _batch_analyse(settings=settings, urls=urls, config_file=config_file)
     return result.model_dump_json(indent=2)
 
 
@@ -83,7 +69,7 @@ async def generate_image(analysis: dict) -> str:
     Use after analyse_video or analyse_x_feed to create a shareable infographic.
 
     Args:
-        analysis: Analysis result object from analyse_video, batch_analyse, or converted X digest
+        analysis: Analysis result object from analyse_video or converted X digest
     """
     settings = get_settings()
     result = await _generate_image(analysis_data=analysis, settings=settings)
@@ -131,7 +117,7 @@ async def sync_to_github(
     Use after analyse_video, analyse_x_feed, or generate_image to persist results.
 
     Args:
-        analyses: List of analysis result objects from analyse_video or batch_analyse
+        analyses: List of analysis result objects from analyse_video
         commit_message: Git commit message (default: 'Add video analyses')
         image_paths: Optional list of objects with 'analysis' (dict) and 'image_path' (str) fields
         x_digests: Optional list of X digest analysis objects from analyse_x_feed

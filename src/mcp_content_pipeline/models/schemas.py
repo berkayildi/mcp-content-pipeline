@@ -14,18 +14,7 @@ class VideoAnalysis(BaseModel):
     date_analysed: str = Field(default_factory=lambda: datetime.now().isoformat())
     key_takeaways: list[str]
     tldr: str
-    twitter_hook: str
     topics: list[str]
-
-
-class BatchFailure(BaseModel):
-    url: str
-    error: str
-
-
-class BatchAnalysisResult(BaseModel):
-    successes: list[VideoAnalysis] = Field(default_factory=list)
-    failures: list[BatchFailure] = Field(default_factory=list)
 
 
 class ChannelVideo(BaseModel):
