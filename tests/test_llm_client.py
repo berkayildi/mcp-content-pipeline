@@ -52,25 +52,6 @@ class TestCompleteOpenAI:
             assert call_kwargs["messages"][1] == {"role": "user", "content": "user"}
 
 
-class TestCompleteGoogle:
-    @pytest.mark.asyncio
-    async def test_google_provider(self):
-        mock_response = MagicMock()
-        mock_response.text = "gemini reply"
-        mock_client = MagicMock()
-        mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
-
-        with patch("google.genai.Client", return_value=mock_client):
-            result = await complete(
-                provider="google",
-                api_key="key",
-                model="gemini-2.5-flash",
-                system_prompt="sys",
-                user_prompt="user",
-            )
-            assert result == "gemini reply"
-
-
 class TestCompleteUnsupportedProvider:
     @pytest.mark.asyncio
     async def test_unsupported_provider_raises(self):

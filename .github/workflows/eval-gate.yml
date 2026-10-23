@@ -25,14 +25,13 @@ jobs:
           python-version: "3.12"
 
       - name: Install eval tooling
-        run: pip install mcp-llm-eval anthropic openai google-genai
+        run: pip install mcp-llm-eval "mcp<2" anthropic openai
 
       - name: Run evaluation
         run: mcp-llm-eval run --config .eval-gate.yml --dataset eval/dataset.json --output-dir eval/results
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
 
       - name: Check thresholds
         run: mcp-llm-eval check --results eval/results/latest_summary.json --config .eval-gate.yml

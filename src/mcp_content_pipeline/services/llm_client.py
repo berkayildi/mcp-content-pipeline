@@ -1,8 +1,8 @@
-"""Provider-agnostic text-completion driver for analyse_video, batch_analyse, analyse_x_feed."""
+"""Provider-agnostic text-completion driver for analyse_video and analyse_x_feed."""
 
 from __future__ import annotations
 
-SUPPORTED_PROVIDERS = ("anthropic", "openai", "google")
+SUPPORTED_PROVIDERS = ("anthropic", "openai")
 
 
 async def complete(
@@ -20,8 +20,6 @@ async def complete(
         return await _complete_anthropic(api_key, model, system_prompt, user_prompt, max_tokens)
     if provider == "openai":
         return await _complete_openai(api_key, model, system_prompt, user_prompt, max_tokens)
-    if provider == "google":
-        return await _complete_google(api_key, model, system_prompt, user_prompt, max_tokens)
 
     raise ValueError(
         f"Unsupported MCP_CP_PIPELINE_PROVIDER '{provider}'. "
@@ -59,21 +57,3 @@ async def _complete_openai(
         ],
     )
     return response.choices[0].message.content
-
-
-async def _complete_google(
-    api_key: str, model: str, system_prompt: str, user_prompt: str, max_tokens: int
-) -> str:
-    from google import genai
-    from google.genai import types
-
-    client = genai.Client(api_key=api_key)
-    response = await client.aio.models.generate_content(
-        model=model,
-        contents=user_prompt,
-        config=types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            max_output_tokens=max_tokens,
-        ),
-    )
-    return response.text

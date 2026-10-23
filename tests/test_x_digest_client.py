@@ -59,16 +59,6 @@ def sample_digest_response():
         ],
         "tldr": "Key AI voices highlight agents and infrastructure as the next frontier. "
         "Both Karpathy and Cherny see practical AI deployment accelerating beyond chatbots.",
-        "twitter_hook": "AI agents aren't just hype — they're replacing entire workflows. "
-        "Two of tech's sharpest minds agree on what's next #AI #Agents",
-        "notable_posts": [
-            {
-                "author_username": "karpathy",
-                "text": "AI agents are the next big thing in productivity",
-                "url": "https://x.com/karpathy/status/1",
-                "why_notable": "Signals a shift in Karpathy's focus from models to applications",
-            },
-        ],
         "post_count": 2,
     }
 
@@ -121,8 +111,6 @@ class TestParseDigestResponse:
             "title": "Test Digest",
             "key_takeaways": ["t1"],
             "tldr": "summary",
-            "twitter_hook": "hook",
-            "notable_posts": [],
         }
         result = parse_digest_response(json.dumps(data), sample_feed_result, ["AI", "tech"])
         assert result.accounts == ["karpathy", "bcherny"]

@@ -3,23 +3,9 @@
 from __future__ import annotations
 
 from mcp_content_pipeline.config import Settings
-from mcp_content_pipeline.models.schemas import VideoAnalysis, XDigestAnalysis
+from mcp_content_pipeline.models.schemas import XDigestAnalysis
 from mcp_content_pipeline.services.x_client import fetch_x_feed
 from mcp_content_pipeline.services.x_digest_client import analyse_x_feed as _analyse_digest
-
-
-def x_digest_to_video_analysis(digest: XDigestAnalysis) -> VideoAnalysis:
-    """Convert an X digest to VideoAnalysis format, for passing to generate_image."""
-    return VideoAnalysis(
-        title=digest.title,
-        channel="X Feed Digest",
-        url="",
-        date_analysed=digest.date_analysed,
-        key_takeaways=digest.key_takeaways,
-        tldr=digest.tldr,
-        twitter_hook=digest.twitter_hook,
-        topics=digest.topics,
-    )
 
 
 async def analyse_x_feed(

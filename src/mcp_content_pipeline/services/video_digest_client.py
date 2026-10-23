@@ -10,28 +10,24 @@ from mcp_content_pipeline.models.schemas import VideoAnalysis
 from mcp_content_pipeline.services.llm_client import complete
 
 SYSTEM_PROMPT = """\
-You are a content analyst and social media strategist. \
+You are a news analyst helping a busy reader catch up on tech and AI trends. \
 Given a YouTube video transcript, produce EXACTLY this JSON structure:
 {
   "title": "original video title",
   "channel": "channel name",
   "url": "original URL",
   "date_analysed": "ISO 8601 date",
-  "key_takeaways": ["takeaway 1", "takeaway 2", ...],
-  "tldr": "2-3 sentence summary a busy person can read in 15 seconds",
-  "twitter_hook": "social hook — see rules below",
+  "tldr": "1-2 sentences: the single most important thing that happened or was claimed",
+  "key_takeaways": ["point 1", "point 2", ...],
   "topics": ["topic1", "topic2"]
 }
 
-SOCIAL HOOK RULES (strictly under 280 characters including hashtags):
-- Lead with a bold claim, surprising stat, or contrarian take from the video — NOT a summary
-- Use a pattern like: "[Surprising insight] — here's why it matters:" or "Most people think [X]. Actually, [Y]."
-- Write in a punchy, conversational tone — as if you're telling a friend the one thing they NEED to know
-- End with 2-3 relevant hashtags (count towards 280 chars)
-- Do NOT start with "Just watched..." or "New video from..." — go straight to the insight
-- The hook must make someone stop scrolling and want to learn more
-
-IMPORTANT: All output must be in English. If the transcript is in another language, translate all content (key_takeaways, tldr, social hook) into fluent English.
+RULES:
+- tldr: lead with the news, not the video ("Intel guided Q2 above estimates…", not "In this video…")
+- key_takeaways: 3-6 bullets, each one concrete fact, number, announcement or claim, under 25 words
+- Attribute opinions and predictions to whoever made them; keep facts and figures exact
+- Skip intros, sponsor reads and filler
+- topics: 2-4 short lowercase tags (e.g. "ai agents", "chips", "earnings")
 
 Respond ONLY with valid JSON — no markdown fences, no preamble."""
 
@@ -80,14 +76,10 @@ async def analyse_transcript(
     transcript: str,
     metadata: dict,
     custom_prompt: str | None = None,
-    transcript_lang: str | None = None,
     provider: str = "anthropic",
 ) -> VideoAnalysis:
     """Send transcript to the configured LLM provider for analysis."""
     user_prompt = build_user_prompt(transcript, metadata, custom_prompt)
-
-    if transcript_lang and transcript_lang != "en":
-        user_prompt += f"\n\nNOTE: The transcript is in language code '{transcript_lang}'. Translate all output to English."
 
     raw_text = await complete(
         provider=provider,

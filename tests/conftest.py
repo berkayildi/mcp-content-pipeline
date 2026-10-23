@@ -57,11 +57,6 @@ def sample_analysis_result():
             "Deploy ML models reliably by versioning them with code, running shadow deployments, "
             "and monitoring data drift. A fintech company reduced model incidents by 73% with these practices."
         ),
-        twitter_hook=(
-            "Shadow deployments catch ML bugs that unit tests completely miss. "
-            "One fintech cut model incidents by 73% with 3 simple practices "
-            "#MLOps #MachineLearning #AI"
-        ),
         topics=["MLOps", "Machine Learning", "Production Engineering", "DevOps"],
     )
 
@@ -78,21 +73,8 @@ def settings():
         pipeline_provider="anthropic",
         pipeline_api_key="test-api-key",
         pipeline_model="claude-sonnet-4-6",
-        youtube_api_key="test-youtube-key",
         github_token="test-github-token",
         github_repo="owner/repo",
     )
 
 
-@pytest.fixture
-def sample_image_path(tmp_path):
-    # Minimal valid 1x1 red PNG written to a temp file
-    png_bytes = (
-        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01"
-        b"\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00"
-        b"\x00\x00\x0cIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00"
-        b"\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82"
-    )
-    path = tmp_path / "test-image.png"
-    path.write_bytes(png_bytes)
-    return str(path)

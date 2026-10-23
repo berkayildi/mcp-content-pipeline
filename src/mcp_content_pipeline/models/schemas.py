@@ -14,48 +14,18 @@ class VideoAnalysis(BaseModel):
     date_analysed: str = Field(default_factory=lambda: datetime.now().isoformat())
     key_takeaways: list[str]
     tldr: str
-    twitter_hook: str
     topics: list[str]
-
-
-class BatchFailure(BaseModel):
-    url: str
-    error: str
-
-
-class BatchAnalysisResult(BaseModel):
-    successes: list[VideoAnalysis] = Field(default_factory=list)
-    failures: list[BatchFailure] = Field(default_factory=list)
-
-
-class ChannelVideo(BaseModel):
-    video_id: str
-    title: str
-    url: str
-    published_at: str
-
-
-class ChannelVideosResult(BaseModel):
-    channel_id: str
-    videos: list[ChannelVideo]
 
 
 class SyncFileResult(BaseModel):
     path: str
-    action: str  # "created" or "updated"
-
-
-class ImageGenerationResult(BaseModel):
-    image_path: str
-    prompt_used: str
-    analysis_title: str
+    action: str  # "created", "updated" or "unchanged"
 
 
 class SyncResult(BaseModel):
     files: list[SyncFileResult]
     commit_sha: str | None = None
-    index_path: str | None = None
-    image_files: list[SyncFileResult] = Field(default_factory=list)
+    index_paths: list[str] = Field(default_factory=list)
 
 
 class XPost(BaseModel):
@@ -89,15 +59,6 @@ class XFeedFetchResult(BaseModel):
     fetched_at: str = Field(default_factory=lambda: datetime.now().isoformat())
 
 
-class XNotablePost(BaseModel):
-    """A post highlighted as particularly noteworthy."""
-
-    author_username: str
-    text: str
-    url: str
-    why_notable: str
-
-
 class XDigestAnalysis(BaseModel):
     """LLM-generated digest of X feed posts."""
 
@@ -107,8 +68,6 @@ class XDigestAnalysis(BaseModel):
     topics: list[str]
     key_takeaways: list[str]
     tldr: str
-    twitter_hook: str
-    notable_posts: list[XNotablePost] = Field(default_factory=list)
     post_count: int = 0
     source: str = "x_feed"
 

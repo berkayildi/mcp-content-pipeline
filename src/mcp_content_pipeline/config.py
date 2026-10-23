@@ -12,20 +12,15 @@ def _split_csv(v: str | list[str]) -> list[str]:
 
 
 class Settings(BaseSettings):
-    pipeline_provider: str = "anthropic"  # anthropic | openai | google — see services/llm_client.py
+    pipeline_provider: str = "anthropic"  # anthropic | openai — see services/llm_client.py
     pipeline_api_key: str = ""
     pipeline_model: str = "claude-sonnet-4-6"
-    youtube_api_key: str | None = None
     github_token: str = ""
     github_repo: str = ""  # format: "owner/repo"
     github_branch: str = "main"
     github_output_dir: str = "content/youtube"
     github_x_output_dir: str = "content/x-digest"
-    gemini_api_key: str = ""
-    gemini_model: str = "gemini-3.1-flash-image-preview"
-    image_output_dir: str = ""
     max_transcript_tokens: int = 100000
-    supadata_api_key: str = ""
     x_bearer_token: str = ""
     x_accounts: str | list[str] = []
     x_topics: str | list[str] = []

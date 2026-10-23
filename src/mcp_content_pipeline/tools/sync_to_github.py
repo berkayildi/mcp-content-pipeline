@@ -13,7 +13,6 @@ async def sync_to_github(
     analyses: list[VideoAnalysis],
     settings: Settings,
     commit_message: str = "Add video analyses",
-    images: list[tuple[VideoAnalysis, bytes]] | None = None,
     x_digests: list[XDigestAnalysis] | None = None,
 ) -> SyncResult:
     """Push analysed content as markdown files to a GitHub repository."""
@@ -40,7 +39,6 @@ async def sync_to_github(
         output_dir=settings.github_output_dir,
         analyses=analyses,
         commit_message=commit_message,
-        images=images,
         x_digests=x_digests,
         x_output_dir=settings.github_x_output_dir,
     )

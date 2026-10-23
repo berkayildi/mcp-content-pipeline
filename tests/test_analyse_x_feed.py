@@ -8,14 +8,12 @@ import pytest
 
 from mcp_content_pipeline.config import Settings
 from mcp_content_pipeline.models.schemas import (
-    VideoAnalysis,
     XDigestAnalysis,
     XFeedFailure,
     XFeedFetchResult,
-    XNotablePost,
     XPost,
 )
-from mcp_content_pipeline.tools.analyse_x_feed import analyse_x_feed, x_digest_to_video_analysis
+from mcp_content_pipeline.tools.analyse_x_feed import analyse_x_feed
 
 
 @pytest.fixture
@@ -55,15 +53,6 @@ def sample_digest():
         topics=["AI", "tech"],
         key_takeaways=["AI agents are becoming mainstream", "Infrastructure investment accelerating"],
         tldr="Key AI voices highlight agents as the next frontier.",
-        twitter_hook="AI agents aren't just hype — they're replacing workflows #AI #Agents",
-        notable_posts=[
-            XNotablePost(
-                author_username="karpathy",
-                text="AI agents are the next big thing",
-                url="https://x.com/karpathy/status/1",
-                why_notable="Signals shift from models to applications",
-            ),
-        ],
         post_count=1,
     )
 
@@ -204,7 +193,6 @@ class TestAnalyseXFeed:
             topics=["AI", "tech"],
             key_takeaways=["t1"],
             tldr="s",
-            twitter_hook="h",
         )
         with (
             patch(
@@ -222,15 +210,3 @@ class TestAnalyseXFeed:
             assert mock_analyse.call_args.kwargs["topics"] == ["AI", "tech"]
 
 
-class TestXDigestToVideoAnalysis:
-    def test_conversion(self, sample_digest):
-        result = x_digest_to_video_analysis(sample_digest)
-        assert isinstance(result, VideoAnalysis)
-        assert result.title == sample_digest.title
-        assert result.channel == "X Feed Digest"
-        assert result.url == ""
-        assert result.key_takeaways == sample_digest.key_takeaways
-        assert result.tldr == sample_digest.tldr
-        assert result.twitter_hook == sample_digest.twitter_hook
-        assert result.topics == sample_digest.topics
-        assert result.date_analysed == sample_digest.date_analysed

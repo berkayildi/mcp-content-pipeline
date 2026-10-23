@@ -1,4 +1,4 @@
-"""Tests for the transcript service (Supadata API)."""
+"""Tests for the transcript service (YouTube InnerTube player)."""
 
 from __future__ import annotations
 
@@ -7,302 +7,177 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from mcp_content_pipeline.services.transcript import (
+    _pick_english_track,
+    _truncate,
     fetch_transcript,
-    fetch_video_metadata,
+    parse_caption_xml,
     parse_video_id,
 )
+
+SRV3_XML = """<?xml version="1.0" encoding="utf-8" ?><timedtext format="3">
+<body>
+<p t="1360" d="1680">We&amp;#39;re no strangers</p>
+<p t="18640" d="3240"><s>to</s><s t="200"> love</s></p>
+<p t="22640" d="4320">You know the rules
+and so do I</p>
+<p t="30000" d="10"> </p>
+</body></timedtext>"""
+
+
+def _player(tracks=None, status="OK", reason=None):
+    playability = {"status": status}
+    if reason:
+        playability["reason"] = reason
+    data = {
+        "playabilityStatus": playability,
+        "videoDetails": {"title": "Test Video", "author": "Test Channel"},
+    }
+    if tracks is not None:
+        data["captions"] = {"playerCaptionsTracklistRenderer": {"captionTracks": tracks}}
+    return data
+
+
+def _mock_client(player: dict, caption_text: str = SRV3_XML):
+    player_resp = MagicMock()
+    player_resp.json.return_value = player
+    caption_resp = MagicMock()
+    caption_resp.text = caption_text
+
+    client = AsyncMock()
+    client.post = AsyncMock(return_value=player_resp)
+    client.get = AsyncMock(return_value=caption_resp)
+    return client
+
+
+def _patch_client(client):
+    patcher = patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient")
+    MockClient = patcher.start()
+    MockClient.return_value.__aenter__ = AsyncMock(return_value=client)
+    MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
+    return patcher
 
 
 class TestFetchTranscript:
     @pytest.mark.asyncio
-    async def test_fetch_transcript_english(self):
-        """Successful English transcript from Supadata."""
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.text = "Hello this is a transcript"
+    async def test_fetch_transcript_success(self):
+        client = _mock_client(_player([{"languageCode": "en", "baseUrl": "https://caps/en"}]))
+        patcher = _patch_client(client)
+        try:
+            text, metadata = await fetch_transcript("dQw4w9WgXcQ")
+        finally:
+            patcher.stop()
 
-        mock_client = AsyncMock()
-        mock_client.get = AsyncMock(return_value=mock_response)
-
-        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
-            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
-
-            text, lang, title = await fetch_transcript("https://www.youtube.com/watch?v=dQw4w9WgXcQ", supadata_api_key="test-key")
-            assert text == "Hello this is a transcript"
-            assert lang == "en"
-            mock_client.get.assert_called_once()
-            call_kwargs = mock_client.get.call_args
-            assert call_kwargs[1]["params"]["lang"] == "en"
+        assert text == "We're no strangers to love You know the rules and so do I"
+        assert metadata == {
+            "title": "Test Video",
+            "channel": "Test Channel",
+            "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        }
+        assert client.post.call_args.kwargs["json"]["videoId"] == "dQw4w9WgXcQ"
+        client.get.assert_called_once_with("https://caps/en")
 
     @pytest.mark.asyncio
-    async def test_fetch_transcript_fallback_available_langs(self):
-        """Falls back to available languages when English returns empty."""
-        empty_response = MagicMock()
-        empty_response.status_code = 200
-        empty_response.text = ""
-        empty_response.json.return_value = {"availableLangs": ["tr", "de"]}
-
-        tr_response = MagicMock()
-        tr_response.status_code = 200
-        tr_response.text = "Turkce transkript"
-
-        mock_client = AsyncMock()
-        mock_client.get = AsyncMock(side_effect=[empty_response, tr_response])
-
-        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
-            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
-
-            text, lang, title = await fetch_transcript("https://www.youtube.com/watch?v=test123", supadata_api_key="test-key")
-            assert text == "Turkce transkript"
-            assert lang == "tr"
+    async def test_fetch_transcript_no_english_track(self):
+        client = _mock_client(_player([{"languageCode": "tr", "baseUrl": "https://caps/tr"}]))
+        patcher = _patch_client(client)
+        try:
+            with pytest.raises(ValueError, match="No English transcript"):
+                await fetch_transcript("dQw4w9WgXcQ")
+        finally:
+            patcher.stop()
+        client.get.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_fetch_transcript_fallback_common_langs(self):
-        """Falls back to trying common languages when no availableLangs."""
-        empty_response = MagicMock()
-        empty_response.status_code = 200
-        empty_response.text = ""
-        empty_response.json.side_effect = Exception("not json")
-
-        fail_response = MagicMock()
-        fail_response.status_code = 404
-        fail_response.text = ""
-
-        es_response = MagicMock()
-        es_response.status_code = 200
-        es_response.text = "Transcripcion en espanol"
-
-        mock_client = AsyncMock()
-        # First call: English (empty), then tr (404), then es (success)
-        mock_client.get = AsyncMock(side_effect=[empty_response, fail_response, es_response])
-
-        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
-            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
-
-            text, lang, title = await fetch_transcript("https://www.youtube.com/watch?v=test123", supadata_api_key="test-key")
-            assert text == "Transcripcion en espanol"
-            assert lang == "es"
+    async def test_fetch_transcript_no_captions(self):
+        client = _mock_client(_player(tracks=None))
+        patcher = _patch_client(client)
+        try:
+            with pytest.raises(ValueError, match="No English transcript"):
+                await fetch_transcript("dQw4w9WgXcQ")
+        finally:
+            patcher.stop()
 
     @pytest.mark.asyncio
-    async def test_fetch_transcript_no_transcript_raises(self):
-        """Raises ValueError when no transcript is available in any language."""
-        empty_response = MagicMock()
-        empty_response.status_code = 404
-        empty_response.text = ""
-
-        mock_client = AsyncMock()
-        mock_client.get = AsyncMock(return_value=empty_response)
-
-        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
-            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
-
-            with pytest.raises(ValueError, match="No transcript available"):
-                await fetch_transcript("https://www.youtube.com/watch?v=test123", supadata_api_key="test-key")
+    async def test_fetch_transcript_unplayable(self):
+        client = _mock_client(_player(status="LOGIN_REQUIRED", reason="Sign in to confirm your age"))
+        patcher = _patch_client(client)
+        try:
+            with pytest.raises(ValueError, match="not playable: Sign in to confirm your age"):
+                await fetch_transcript("dQw4w9WgXcQ")
+        finally:
+            patcher.stop()
 
     @pytest.mark.asyncio
-    async def test_fetch_transcript_truncation(self):
-        """Long transcripts are truncated."""
-        long_text = "A" * 500000
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.text = long_text
-
-        mock_client = AsyncMock()
-        mock_client.get = AsyncMock(return_value=mock_response)
-
-        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
-            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
-
-            text, lang, title = await fetch_transcript(
-                "https://www.youtube.com/watch?v=dQw4w9WgXcQ", max_tokens=1000, supadata_api_key="test-key"
-            )
-            assert len(text) < len(long_text)
-            assert "[Transcript truncated due to length]" in text
-            assert lang == "en"
+    async def test_fetch_transcript_empty_captions(self):
+        client = _mock_client(
+            _player([{"languageCode": "en", "baseUrl": "https://caps/en"}]),
+            caption_text="<timedtext><body></body></timedtext>",
+        )
+        patcher = _patch_client(client)
+        try:
+            with pytest.raises(ValueError, match="Empty English transcript"):
+                await fetch_transcript("dQw4w9WgXcQ")
+        finally:
+            patcher.stop()
 
     @pytest.mark.asyncio
-    async def test_fetch_transcript_no_truncation_needed(self):
-        """Short transcripts are not truncated."""
-        short_text = "Short transcript."
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.text = short_text
+    async def test_fetch_transcript_truncates(self):
+        client = _mock_client(_player([{"languageCode": "en", "baseUrl": "https://caps/en"}]))
+        patcher = _patch_client(client)
+        try:
+            text, _ = await fetch_transcript("dQw4w9WgXcQ", max_tokens=2)
+        finally:
+            patcher.stop()
+        assert text.startswith("We're no")
+        assert text.endswith("[Transcript truncated due to length]")
 
-        mock_client = AsyncMock()
-        mock_client.get = AsyncMock(return_value=mock_response)
 
-        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
-            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
+class TestPickEnglishTrack:
+    def test_prefers_manual_over_asr(self):
+        tracks = [
+            {"languageCode": "en", "kind": "asr", "baseUrl": "asr"},
+            {"languageCode": "en", "baseUrl": "manual"},
+        ]
+        assert _pick_english_track(tracks)["baseUrl"] == "manual"
 
-            text, lang, title = await fetch_transcript("https://www.youtube.com/watch?v=dQw4w9WgXcQ", supadata_api_key="test-key")
-            assert text == short_text
-            assert "[Transcript truncated" not in text
+    def test_falls_back_to_asr(self):
+        tracks = [{"languageCode": "de"}, {"languageCode": "en", "kind": "asr", "baseUrl": "asr"}]
+        assert _pick_english_track(tracks)["baseUrl"] == "asr"
 
-    @pytest.mark.asyncio
-    async def test_fetch_transcript_returns_supadata_title(self):
-        """Returns title from Supadata response when available."""
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.text = "Hello this is a transcript"
-        mock_response.json.return_value = {"title": "Video From Supadata"}
+    def test_accepts_regional_english(self):
+        tracks = [{"languageCode": "en-GB", "baseUrl": "gb"}]
+        assert _pick_english_track(tracks)["baseUrl"] == "gb"
 
-        mock_client = AsyncMock()
-        mock_client.get = AsyncMock(return_value=mock_response)
+    def test_none_when_no_english(self):
+        assert _pick_english_track([{"languageCode": "es"}, {"languageCode": "eng-fake"}]) is None
+        assert _pick_english_track([]) is None
 
-        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
-            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
 
-            text, lang, title = await fetch_transcript("https://www.youtube.com/watch?v=dQw4w9WgXcQ", supadata_api_key="test-key")
-            assert title == "Video From Supadata"
+class TestParseCaptionXml:
+    def test_srv3(self):
+        assert parse_caption_xml(SRV3_XML) == "We're no strangers to love You know the rules and so do I"
 
-    @pytest.mark.asyncio
-    async def test_fetch_transcript_no_title_in_response(self):
-        """Returns None for title when Supadata response has no title field."""
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.text = "Hello this is a transcript"
-        mock_response.json.side_effect = Exception("not json")
+    def test_srv1(self):
+        xml = '<transcript><text start="0" dur="1">Hello &amp;amp; welcome</text><text start="1">back</text></transcript>'
+        assert parse_caption_xml(xml) == "Hello & welcome back"
 
-        mock_client = AsyncMock()
-        mock_client.get = AsyncMock(return_value=mock_response)
+    def test_empty(self):
+        assert parse_caption_xml("") == ""
 
-        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
-            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
+    def test_escaped_markup_stripped(self):
+        xml = '<text start="0">&amp;lt;font color=&amp;quot;#E5E5E5&amp;quot;&amp;gt;Hello&amp;lt;/font&amp;gt; world</text>'
+        assert parse_caption_xml(xml) == "Hello world"
 
-            text, lang, title = await fetch_transcript("https://www.youtube.com/watch?v=dQw4w9WgXcQ", supadata_api_key="test-key")
-            assert title is None
 
-    @pytest.mark.asyncio
-    async def test_fetch_transcript_missing_api_key_raises(self):
-        """Raises ValueError when supadata_api_key is empty."""
-        with pytest.raises(ValueError, match="Supadata API key is required"):
-            await fetch_transcript("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+class TestTruncate:
+    def test_short_text_unchanged(self):
+        assert _truncate("short", 100) == "short"
+
+    def test_long_text_truncated(self):
+        result = _truncate("a" * 50, 10)
+        assert result == "a" * 40 + "\n\n[Transcript truncated due to length]"
 
 
 class TestParseVideoId:
     def test_live_url(self):
-        url = "https://www.youtube.com/live/-c7k_MT84eQ"
-        assert parse_video_id(url) == "-c7k_MT84eQ"
-
-    def test_live_url_with_query_params(self):
-        url = "https://www.youtube.com/live/-c7k_MT84eQ?si=abc123"
-        assert parse_video_id(url) == "-c7k_MT84eQ"
-
-    def test_standard_watch_url(self):
-        url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-        assert parse_video_id(url) == "dQw4w9WgXcQ"
-
-    def test_invalid_url_raises(self):
-        with pytest.raises(ValueError):
-            parse_video_id("https://example.com/notavideo")
-
-
-class TestFetchVideoMetadata:
-    @pytest.mark.asyncio
-    async def test_fetch_metadata_success(self):
-        mock_response = MagicMock()
-        mock_response.json.return_value = {
-            "title": "Test Video",
-            "author_name": "Test Channel",
-        }
-        mock_response.raise_for_status = MagicMock()
-
-        mock_client = AsyncMock()
-        mock_client.get = AsyncMock(return_value=mock_response)
-
-        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
-            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
-
-            result = await fetch_video_metadata("dQw4w9WgXcQ")
-            assert result["title"] == "Test Video"
-            assert result["channel"] == "Test Channel"
-            assert "youtube.com/watch?v=dQw4w9WgXcQ" in result["url"]
-
-    @pytest.mark.asyncio
-    async def test_fetch_metadata_from_live_url(self):
-        """Live URLs are normalised to watch?v= for oEmbed."""
-        mock_response = MagicMock()
-        mock_response.json.return_value = {
-            "title": "Live Stream",
-            "author_name": "Live Channel",
-        }
-        mock_response.raise_for_status = MagicMock()
-
-        mock_client = AsyncMock()
-        mock_client.get = AsyncMock(return_value=mock_response)
-
-        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
-            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
-
-            result = await fetch_video_metadata("https://www.youtube.com/live/-c7k_MT84eQ")
-            assert result["title"] == "Live Stream"
-            assert result["channel"] == "Live Channel"
-            assert result["url"] == "https://www.youtube.com/watch?v=-c7k_MT84eQ"
-
-            # Verify the oEmbed call used the normalised watch URL, not the live URL
-            call_url = mock_client.get.call_args[0][0]
-            assert "watch?v=-c7k_MT84eQ" in call_url
-            assert "/live/" not in call_url
-
-    @pytest.mark.asyncio
-    async def test_fetch_metadata_401_fallback(self):
-        """Returns fallback metadata when oEmbed returns 401."""
-        mock_response = MagicMock()
-        mock_response.status_code = 401
-
-        mock_client = AsyncMock()
-        mock_client.get = AsyncMock(return_value=mock_response)
-
-        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
-            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
-
-            result = await fetch_video_metadata("dQw4w9WgXcQ")
-            assert result["title"] == "Unknown Title"
-            assert result["channel"] == "Unknown Channel"
-            assert "youtube.com/watch?v=dQw4w9WgXcQ" in result["url"]
-
-    @pytest.mark.asyncio
-    async def test_fetch_metadata_403_fallback(self):
-        """Returns fallback metadata when oEmbed returns 403."""
-        mock_response = MagicMock()
-        mock_response.status_code = 403
-
-        mock_client = AsyncMock()
-        mock_client.get = AsyncMock(return_value=mock_response)
-
-        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
-            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
-
-            result = await fetch_video_metadata("dQw4w9WgXcQ")
-            assert result["title"] == "Unknown Title"
-            assert result["channel"] == "Unknown Channel"
-            assert "youtube.com/watch?v=dQw4w9WgXcQ" in result["url"]
-
-    @pytest.mark.asyncio
-    async def test_fetch_metadata_missing_fields(self):
-        mock_response = MagicMock()
-        mock_response.json.return_value = {}
-        mock_response.raise_for_status = MagicMock()
-
-        mock_client = AsyncMock()
-        mock_client.get = AsyncMock(return_value=mock_response)
-
-        with patch("mcp_content_pipeline.services.transcript.httpx.AsyncClient") as MockClient:
-            MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
-
-            result = await fetch_video_metadata("dQw4w9WgXcQ")
-            assert result["title"] == "Unknown Title"
-            assert result["channel"] == "Unknown Channel"
+        assert parse_video_id("https://www.youtube.com/live/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
