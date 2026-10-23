@@ -37,15 +37,6 @@ def generate_x_digest_markdown(digest: XDigestAnalysis) -> str:
     topics = ", ".join(digest.topics)
     takeaways = "\n".join(f"- {t}" for t in digest.key_takeaways)
 
-    notable_sections = []
-    for post in digest.notable_posts:
-        notable_sections.append(f"""### @{post.author_username}
-> {post.text}
-{post.url}
-*{post.why_notable}*""")
-
-    notable = "\n\n".join(notable_sections)
-
     return f"""# {digest.title}
 
 **Accounts:** {accounts}
@@ -55,21 +46,9 @@ def generate_x_digest_markdown(digest: XDigestAnalysis) -> str:
 
 ---
 
-## Key Takeaways
+**TL;DR:** {digest.tldr}
 
 {takeaways}
-
-## TLDR
-
-{digest.tldr}
-
-## Social Hook
-
-> {digest.twitter_hook}
-
-## Notable Posts
-
-{notable}
 """
 
 

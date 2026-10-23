@@ -82,7 +82,6 @@ Or with the full pipeline:
 | Tool                  | Description                                                               | Requires                                |
 | --------------------- | ------------------------------------------------------------------------- | --------------------------------------- |
 | `analyse_video`       | Analyse a single YouTube video (English captions) — TL;DR and key points  | `PIPELINE_API_KEY`                      |
-| `list_channel_videos` | Fetch recent videos from a YouTube channel                                | `YOUTUBE_API_KEY`                       |
 | `sync_to_github`      | Push analyses as markdown files to a GitHub repo                          | `GITHUB_TOKEN`, `GITHUB_REPO`           |
 | `analyse_x_feed`      | Analyse recent posts from curated X accounts — daily digest               | `PIPELINE_API_KEY`, `X_BEARER_TOKEN`    |
 
@@ -102,7 +101,6 @@ All prefixed with `MCP_CP_` and set in `.env` — see `.env.example` for a ready
 
 | Variable               | Required | Description                                          |
 | ----------------------- | -------- | ------------------------------------------------------ |
-| `YOUTUBE_API_KEY`       | No       | Only for `list_channel_videos`                          |
 | `MAX_TRANSCRIPT_TOKENS` | No       | Default: `100000`                                       |
 
 **GitHub** — required for sync_to_github

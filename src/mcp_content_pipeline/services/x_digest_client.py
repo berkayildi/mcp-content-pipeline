@@ -10,42 +10,25 @@ from mcp_content_pipeline.models.schemas import XDigestAnalysis, XFeedFetchResul
 from mcp_content_pipeline.services.llm_client import complete
 
 SYSTEM_PROMPT = """\
-You are a content analyst and social media strategist. \
+You are a news analyst helping a busy reader catch up on tech and AI trends. \
 Given a collection of posts from X (Twitter), produce EXACTLY this JSON structure:
 {
   "title": "descriptive digest title",
   "accounts": ["username1", "username2"],
   "topics": ["topic1", "topic2"],
-  "key_takeaways": ["takeaway 1", "takeaway 2", ...],
-  "tldr": "2-3 sentence summary a busy person can read in 15 seconds",
-  "twitter_hook": "social hook — see rules below",
-  "notable_posts": [
-    {
-      "author_username": "username",
-      "text": "post text",
-      "url": "post url",
-      "why_notable": "reason this post stands out"
-    }
-  ],
+  "tldr": "1-2 sentences: the most important thing happening across these posts",
+  "key_takeaways": ["point 1", "point 2", ...],
   "post_count": 42
 }
 
-ANALYSIS RULES:
-- Synthesise across ALL accounts — find common themes and disagreements
-- Focus on the provided topics — ignore off-topic posts
-- key_takeaways: 4-8 items that capture the most important insights
-- notable_posts: 3-5 posts that are particularly noteworthy, with why_notable explaining the reason
+RULES:
+- tldr: lead with the news, not the feed ("Anthropic donated Agent Skills…", not "Today on X…")
+- key_takeaways: 3-6 bullets, each one concrete fact, announcement or claim, under 25 words, ending with the source handle, e.g. "(@karpathy)"
+- Synthesise across accounts; merge posts about the same thing into one bullet
+- Only cover the provided topics; skip off-topic posts and filler
+- Attribute opinions and predictions; keep facts and figures exact
+- topics: 2-4 short lowercase tags
 - post_count: total number of posts analysed
-
-SOCIAL HOOK RULES (strictly under 280 characters including hashtags):
-- Lead with a bold claim, surprising stat, or contrarian take from the posts — NOT a summary
-- Use a pattern like: "[Surprising insight] — here's why it matters:" or "Most people think [X]. Actually, [Y]."
-- Write in a punchy, conversational tone — as if you're telling a friend the one thing they NEED to know
-- End with 2-3 relevant hashtags (count towards 280 chars)
-- Do NOT start with "Just read..." or "Today on X..." — go straight to the insight
-- The hook must make someone stop scrolling and want to learn more
-
-IMPORTANT: All output must be in English.
 
 Respond ONLY with valid JSON — no markdown fences, no preamble."""
 

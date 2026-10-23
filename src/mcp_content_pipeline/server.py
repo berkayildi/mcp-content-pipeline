@@ -11,9 +11,6 @@ from mcp_content_pipeline.config import get_settings
 from mcp_content_pipeline.models.schemas import VideoAnalysis, XDigestAnalysis
 from mcp_content_pipeline.tools.analyse_video import analyse_video as _analyse_video
 from mcp_content_pipeline.tools.analyse_x_feed import analyse_x_feed as _analyse_x_feed
-from mcp_content_pipeline.tools.list_channel_videos import (
-    list_channel_videos as _list_channel_videos,
-)
 from mcp_content_pipeline.tools.sync_to_github import sync_to_github as _sync_to_github
 
 mcp = FastMCP("mcp-content-pipeline")
@@ -37,29 +34,6 @@ async def analyse_video(url: str, custom_prompt: str | None = None) -> str:
 
 
 @mcp.tool()
-async def list_channel_videos(
-    channel_id: str,
-    max_results: int = 10,
-    published_after: str | None = None,
-) -> str:
-    """Fetch recent videos from a YouTube channel (requires YouTube Data API key).
-
-    Args:
-        channel_id: YouTube channel ID
-        max_results: Number of recent videos to fetch (default: 10, max: 50)
-        published_after: ISO date to filter videos published after this date
-    """
-    settings = get_settings()
-    result = await _list_channel_videos(
-        channel_id=channel_id,
-        settings=settings,
-        max_results=max_results,
-        published_after=published_after,
-    )
-    return result.model_dump_json(indent=2)
-
-
-@mcp.tool()
 async def analyse_x_feed(
     usernames: list[str] | None = None,
     topics: list[str] | None = None,
@@ -68,7 +42,7 @@ async def analyse_x_feed(
     """Analyse recent X (Twitter) posts and tweets from specified accounts or configured defaults.
 
     Fetches posts from X/Twitter user timelines, filters by topic, and generates
-    a digest with key takeaways, TLDR, social hook, and notable posts. Use this
+    a digest with a TL;DR and key points. Use this
     tool when the user asks about X posts, tweets, Twitter feed, what someone
     posted on X, or wants a digest of X/Twitter activity.
 

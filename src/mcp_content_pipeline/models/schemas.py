@@ -17,18 +17,6 @@ class VideoAnalysis(BaseModel):
     topics: list[str]
 
 
-class ChannelVideo(BaseModel):
-    video_id: str
-    title: str
-    url: str
-    published_at: str
-
-
-class ChannelVideosResult(BaseModel):
-    channel_id: str
-    videos: list[ChannelVideo]
-
-
 class SyncFileResult(BaseModel):
     path: str
     action: str  # "created" or "updated"
@@ -71,15 +59,6 @@ class XFeedFetchResult(BaseModel):
     fetched_at: str = Field(default_factory=lambda: datetime.now().isoformat())
 
 
-class XNotablePost(BaseModel):
-    """A post highlighted as particularly noteworthy."""
-
-    author_username: str
-    text: str
-    url: str
-    why_notable: str
-
-
 class XDigestAnalysis(BaseModel):
     """LLM-generated digest of X feed posts."""
 
@@ -89,8 +68,6 @@ class XDigestAnalysis(BaseModel):
     topics: list[str]
     key_takeaways: list[str]
     tldr: str
-    twitter_hook: str
-    notable_posts: list[XNotablePost] = Field(default_factory=list)
     post_count: int = 0
     source: str = "x_feed"
 

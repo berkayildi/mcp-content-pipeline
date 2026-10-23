@@ -15,7 +15,6 @@ class Settings(BaseSettings):
     pipeline_provider: str = "anthropic"  # anthropic | openai — see services/llm_client.py
     pipeline_api_key: str = ""
     pipeline_model: str = "claude-sonnet-4-6"
-    youtube_api_key: str | None = None
     github_token: str = ""
     github_repo: str = ""  # format: "owner/repo"
     github_branch: str = "main"

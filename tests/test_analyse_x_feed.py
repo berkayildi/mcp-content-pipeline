@@ -11,7 +11,6 @@ from mcp_content_pipeline.models.schemas import (
     XDigestAnalysis,
     XFeedFailure,
     XFeedFetchResult,
-    XNotablePost,
     XPost,
 )
 from mcp_content_pipeline.tools.analyse_x_feed import analyse_x_feed
@@ -54,15 +53,6 @@ def sample_digest():
         topics=["AI", "tech"],
         key_takeaways=["AI agents are becoming mainstream", "Infrastructure investment accelerating"],
         tldr="Key AI voices highlight agents as the next frontier.",
-        twitter_hook="AI agents aren't just hype — they're replacing workflows #AI #Agents",
-        notable_posts=[
-            XNotablePost(
-                author_username="karpathy",
-                text="AI agents are the next big thing",
-                url="https://x.com/karpathy/status/1",
-                why_notable="Signals shift from models to applications",
-            ),
-        ],
         post_count=1,
     )
 
@@ -203,7 +193,6 @@ class TestAnalyseXFeed:
             topics=["AI", "tech"],
             key_takeaways=["t1"],
             tldr="s",
-            twitter_hook="h",
         )
         with (
             patch(

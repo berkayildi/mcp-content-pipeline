@@ -12,6 +12,7 @@ from mcp_content_pipeline.services.github_client import (
     generate_index,
     generate_markdown,
     generate_x_digest_index,
+    generate_x_digest_markdown,
     parse_index_entries,
 )
 from mcp_content_pipeline.tools.sync_to_github import sync_to_github
@@ -62,6 +63,24 @@ class TestGenerateMarkdown:
     def test_markdown_contains_topics(self, analysis):
         md = generate_markdown(analysis)
         assert "**Topics:** MLOps, AI" in md
+
+
+class TestGenerateXDigestMarkdown:
+    def test_tldr_then_points(self):
+        digest = XDigestAnalysis(
+            title="AI Digest",
+            accounts=["karpathy", "bcherny"],
+            topics=["ai agents"],
+            key_takeaways=["Point one (@karpathy)", "Point two (@bcherny)"],
+            tldr="Agents are shipping.",
+            post_count=4,
+        )
+        md = generate_x_digest_markdown(digest)
+        assert "**Accounts:** karpathy, bcherny" in md
+        assert "**Posts analysed:** 4" in md
+        assert md.index("**TL;DR:** Agents are shipping.") < md.index("- Point one (@karpathy)")
+        assert "Social Hook" not in md
+        assert "Notable Posts" not in md
 
 
 class TestGenerateFilename:
@@ -388,7 +407,6 @@ class TestGenerateXDigestIndex:
             topics=["AI"],
             key_takeaways=["t"],
             tldr="s",
-            twitter_hook="h",
             post_count=5,
         )
 
@@ -504,7 +522,6 @@ class TestSyncSeparateDirectories:
             topics=["AI"],
             key_takeaways=["t"],
             tldr="s",
-            twitter_hook="h",
             post_count=5,
         )
 

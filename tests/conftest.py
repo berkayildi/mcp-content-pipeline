@@ -73,7 +73,6 @@ def settings():
         pipeline_provider="anthropic",
         pipeline_api_key="test-api-key",
         pipeline_model="claude-sonnet-4-6",
-        youtube_api_key="test-youtube-key",
         github_token="test-github-token",
         github_repo="owner/repo",
     )
