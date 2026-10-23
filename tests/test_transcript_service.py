@@ -164,6 +164,10 @@ class TestParseCaptionXml:
     def test_empty(self):
         assert parse_caption_xml("") == ""
 
+    def test_escaped_markup_stripped(self):
+        xml = '<text start="0">&amp;lt;font color=&amp;quot;#E5E5E5&amp;quot;&amp;gt;Hello&amp;lt;/font&amp;gt; world</text>'
+        assert parse_caption_xml(xml) == "Hello world"
+
 
 class TestTruncate:
     def test_short_text_unchanged(self):

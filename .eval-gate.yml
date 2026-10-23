@@ -25,3 +25,8 @@ models:
     input_cost_per_mtok: 0.25
     output_cost_per_mtok: 2.0
     max_tokens: 4096
+
+judge:
+  provider: openai
+  model: gpt-4o-mini
+  temperature: 0

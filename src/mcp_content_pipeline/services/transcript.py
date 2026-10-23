@@ -74,8 +74,8 @@ def _pick_english_track(tracks: list[dict]) -> dict | None:
 def parse_caption_xml(xml: str) -> str:
     """Flatten timedtext XML (srv1 <text> or srv3 <p>) into plain text."""
     segments = re.findall(r"<(?:p|text)\b[^>]*>(.*?)</(?:p|text)>", xml, re.S)
-    # srv3 nests <s> word tags; entities can be double-escaped
-    cleaned = (html.unescape(html.unescape(re.sub(r"<[^>]+>", "", s))) for s in segments)
+    # srv3 nests <s> word tags; text and styling markup can be double-escaped
+    cleaned = (re.sub(r"<[^>]+>", "", html.unescape(html.unescape(s))) for s in segments)
     return " ".join(" ".join(c.split()) for c in cleaned if c.strip())
 
 

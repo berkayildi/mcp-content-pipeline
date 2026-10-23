@@ -588,3 +588,32 @@ class TestSyncSingleCommit:
         repo.get_git_ref.return_value.edit.assert_not_called()
         assert result.files[0].action == "unchanged"
         assert result.commit_sha is None
+
+    @pytest.mark.asyncio
+    async def test_reads_at_parent_commit(self, analysis):
+        repo = _mock_repo()
+        repo.get_git_commit.return_value.sha = "parent-sha"
+        await _sync(repo, [analysis])
+
+        assert {c.kwargs["ref"] for c in repo.get_contents.call_args_list} == {"parent-sha"}
+
+    @pytest.mark.asyncio
+    async def test_non_404_error_aborts_instead_of_rebuilding_index(self, analysis):
+        from github import GithubException
+
+        repo = _mock_repo()
+        repo.get_contents.side_effect = GithubException(502, "Bad gateway", None)
+        with pytest.raises(GithubException):
+            await _sync(repo, [analysis])
+        repo.create_git_commit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_same_output_dirs_rejected(self, analysis, digest):
+        from mcp_content_pipeline.services.github_client import sync_to_github as _sync_gh
+
+        with pytest.raises(ValueError, match="must differ"):
+            await _sync_gh(
+                token="t", repo_name="o/r", branch="main", output_dir="content",
+                analyses=[analysis], x_digests=[digest], x_output_dir="content",
+            )
+

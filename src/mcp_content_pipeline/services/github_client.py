@@ -169,12 +169,14 @@ def _extract_date_from_row(row: str) -> str:
     return ""
 
 
-def _read_file(repo, path: str, branch: str) -> str | None:
-    """Return a file's text on branch, or None if it does not exist."""
+def _read_file(repo, path: str, ref: str) -> str | None:
+    """Return a file's text at ref, or None if it does not exist; other API errors propagate."""
     try:
-        return repo.get_contents(path, ref=branch).decoded_content.decode()  # type: ignore[union-attr]
-    except GithubException:
-        return None
+        return repo.get_contents(path, ref=ref).decoded_content.decode()  # type: ignore[union-attr]
+    except GithubException as e:
+        if e.status == 404:
+            return None
+        raise
 
 
 async def sync_to_github(
@@ -192,9 +194,16 @@ async def sync_to_github(
     if not analyses and not x_digests:
         return SyncResult(files=[])
 
+    x_dir = x_output_dir or output_dir
+    if x_digests and analyses and x_dir == output_dir:
+        raise ValueError("YouTube and X output directories must differ; both write an index.md")
+
     g = Github(auth=Auth.Token(token))
     repo = g.get_repo(repo_name)
-    x_dir = x_output_dir or output_dir
+    # Read everything at the commit we build on, so index merges match the parent tree
+    ref = repo.get_git_ref(f"heads/{branch}")
+    parent = repo.get_git_commit(ref.object.sha)
+    head = parent.sha
 
     changes: dict[str, str] = {}
     for analysis in analyses:
@@ -204,7 +213,7 @@ async def sync_to_github(
 
     file_results = []
     for path, content in changes.items():
-        current = _read_file(repo, path, branch)
+        current = _read_file(repo, path, head)
         action = "created" if current is None else "unchanged" if current == content else "updated"
         file_results.append(SyncFileResult(path=path, action=action))
 
@@ -212,15 +221,13 @@ async def sync_to_github(
     index_paths: list[str] = []
     if analyses:
         path = f"{output_dir}/index.md"
-        changes[path] = generate_index(analyses, output_dir, _read_file(repo, path, branch))
+        changes[path] = generate_index(analyses, output_dir, _read_file(repo, path, head))
         index_paths.append(path)
     if x_digests:
         path = f"{x_dir}/index.md"
-        changes[path] = generate_x_digest_index(x_digests, x_dir, _read_file(repo, path, branch))
+        changes[path] = generate_x_digest_index(x_digests, x_dir, _read_file(repo, path, head))
         index_paths.append(path)
 
-    ref = repo.get_git_ref(f"heads/{branch}")
-    parent = repo.get_git_commit(ref.object.sha)
     tree = repo.create_git_tree(
         [InputGitTreeElement(path, "100644", "blob", content=content) for path, content in changes.items()],
         parent.tree,
