@@ -79,15 +79,3 @@ def settings():
     )
 
 
-@pytest.fixture
-def sample_image_path(tmp_path):
-    # Minimal valid 1x1 red PNG written to a temp file
-    png_bytes = (
-        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01"
-        b"\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00"
-        b"\x00\x00\x0cIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00"
-        b"\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82"
-    )
-    path = tmp_path / "test-image.png"
-    path.write_bytes(png_bytes)
-    return str(path)

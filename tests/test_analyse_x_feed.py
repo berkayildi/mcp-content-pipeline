@@ -8,14 +8,13 @@ import pytest
 
 from mcp_content_pipeline.config import Settings
 from mcp_content_pipeline.models.schemas import (
-    VideoAnalysis,
     XDigestAnalysis,
     XFeedFailure,
     XFeedFetchResult,
     XNotablePost,
     XPost,
 )
-from mcp_content_pipeline.tools.analyse_x_feed import analyse_x_feed, x_digest_to_video_analysis
+from mcp_content_pipeline.tools.analyse_x_feed import analyse_x_feed
 
 
 @pytest.fixture
@@ -222,14 +221,3 @@ class TestAnalyseXFeed:
             assert mock_analyse.call_args.kwargs["topics"] == ["AI", "tech"]
 
 
-class TestXDigestToVideoAnalysis:
-    def test_conversion(self, sample_digest):
-        result = x_digest_to_video_analysis(sample_digest)
-        assert isinstance(result, VideoAnalysis)
-        assert result.title == sample_digest.title
-        assert result.channel == "X Feed Digest"
-        assert result.url == ""
-        assert result.key_takeaways == sample_digest.key_takeaways
-        assert result.tldr == sample_digest.tldr
-        assert result.topics == sample_digest.topics
-        assert result.date_analysed == sample_digest.date_analysed

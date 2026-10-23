@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
 
 from dotenv import find_dotenv, load_dotenv
 from mcp.server.fastmcp import FastMCP
@@ -12,7 +11,6 @@ from mcp_content_pipeline.config import get_settings
 from mcp_content_pipeline.models.schemas import VideoAnalysis, XDigestAnalysis
 from mcp_content_pipeline.tools.analyse_video import analyse_video as _analyse_video
 from mcp_content_pipeline.tools.analyse_x_feed import analyse_x_feed as _analyse_x_feed
-from mcp_content_pipeline.tools.generate_image import generate_image as _generate_image
 from mcp_content_pipeline.tools.list_channel_videos import (
     list_channel_videos as _list_channel_videos,
 )
@@ -62,21 +60,6 @@ async def list_channel_videos(
 
 
 @mcp.tool()
-async def generate_image(analysis: dict) -> str:
-    """Generate a comic-book style infographic image from a video analysis or X digest result.
-
-    Creates a visual summary with bold colours, panel divisions, and text labels.
-    Use after analyse_video or analyse_x_feed to create a shareable infographic.
-
-    Args:
-        analysis: Analysis result object from analyse_video or converted X digest
-    """
-    settings = get_settings()
-    result = await _generate_image(analysis_data=analysis, settings=settings)
-    return result.model_dump_json(indent=2)
-
-
-@mcp.tool()
 async def analyse_x_feed(
     usernames: list[str] | None = None,
     topics: list[str] | None = None,
@@ -108,37 +91,20 @@ async def analyse_x_feed(
 async def sync_to_github(
     analyses: list[dict],
     commit_message: str = "Add video analyses",
-    image_paths: list[dict] | None = None,
     x_digests: list[dict] | None = None,
 ) -> str:
     """Push analysed content as markdown files to a GitHub repository.
 
-    Syncs video analyses, X feed digests, and images to a configured GitHub repo.
-    Use after analyse_video, analyse_x_feed, or generate_image to persist results.
+    Syncs video analyses and X feed digests to a configured GitHub repo.
+    Use after analyse_video or analyse_x_feed to persist results.
 
     Args:
         analyses: List of analysis result objects from analyse_video
         commit_message: Git commit message (default: 'Add video analyses')
-        image_paths: Optional list of objects with 'analysis' (dict) and 'image_path' (str) fields
         x_digests: Optional list of X digest analysis objects from analyse_x_feed
     """
     settings = get_settings()
     parsed = [VideoAnalysis.model_validate(a) for a in analyses]
-
-    parsed_images = None
-    if image_paths:
-        allowed_base = Path(settings.image_output_dir or "~/Downloads").expanduser().resolve()
-        parsed_images = []
-        for img in image_paths:
-            analysis_obj = VideoAnalysis.model_validate(img["analysis"])
-            p = Path(img["image_path"]).expanduser().resolve()
-            if not p.is_relative_to(allowed_base):
-                raise ValueError(f"image_path must be within {allowed_base} (got {p})")
-            if p.suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp"}:
-                raise ValueError(f"image_path must be a png/jpg/jpeg/webp file (got {p.suffix})")
-            with open(p, "rb") as f:
-                image_bytes = f.read()
-            parsed_images.append((analysis_obj, image_bytes))
 
     parsed_digests = None
     if x_digests:
@@ -148,7 +114,6 @@ async def sync_to_github(
         analyses=parsed,
         settings=settings,
         commit_message=commit_message,
-        images=parsed_images,
         x_digests=parsed_digests,
     )
     return result.model_dump_json(indent=2)
