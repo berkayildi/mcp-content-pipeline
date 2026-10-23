@@ -62,16 +62,16 @@ make benchmark   # runs mcp-llm-eval via uvx with keys from .env
 uvx mcp-llm-eval check --results eval/results/latest_summary.json --config .eval-gate.yml
 ```
 
-Triggered automatically on PRs touching `services/`, `tools/`, `config.py`, `server.py`, `eval/`, `.eval-gate.yml` or `pyproject.toml` (see `.github/workflows/eval-gate.yml`). Benchmarks 8 models across Anthropic/OpenAI/Google.
+Triggered automatically on PRs touching `services/`, `tools/`, `config.py`, `server.py`, `eval/`, `.eval-gate.yml` or `pyproject.toml` (see `.github/workflows/eval-gate.yml`). Benchmarks 4 models across Anthropic/OpenAI.
 
 ### Benchmark
 
 ```bash
-make benchmark        # Run eval against all 8 models (~$0.68, ~5 minutes)
+make benchmark        # Run eval against all 4 models
 make benchmark-copy   # Copy results to ../llm-benchmarks/text-generation/
 ```
 
-API keys must be set in `.env`, unprefixed (ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY).
+API keys must be set in `.env`, unprefixed (ANTHROPIC_API_KEY, OPENAI_API_KEY).
 
 ## MCP Tools
 

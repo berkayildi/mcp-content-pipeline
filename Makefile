@@ -2,7 +2,7 @@
 
 # Run LLM benchmark against all models in .eval-gate.yml
 benchmark:
-	@set -a && . ./.env && set +a && uvx --with anthropic --with openai --with google-genai mcp-llm-eval run --config .eval-gate.yml --dataset eval/dataset.json --output-dir eval/results
+	@set -a && . ./.env && set +a && uvx --with anthropic --with openai mcp-llm-eval run --config .eval-gate.yml --dataset eval/dataset.json --output-dir eval/results
 
 # Copy benchmark results to llm-benchmarks repo for LLMShot
 benchmark-copy:

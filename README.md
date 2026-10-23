@@ -167,24 +167,23 @@ Estimated monthly costs for two usage patterns:
 
 ## Eval Gates
 
-PRs touching `services/`, `tools/`, `config.py`, `server.py`, `eval/`, `.eval-gate.yml` or `pyproject.toml` trigger a CI run via [mcp-llm-eval](https://github.com/berkayildi/mcp-llm-eval), scoring faithfulness/relevance across 8 models against a reference dataset; the PR is blocked below configured thresholds.
+PRs touching `services/`, `tools/`, `config.py`, `server.py`, `eval/`, `.eval-gate.yml` or `pyproject.toml` trigger a CI run via [mcp-llm-eval](https://github.com/berkayildi/mcp-llm-eval), scoring faithfulness/relevance across 4 models against a reference dataset; the PR is blocked below configured thresholds.
 
 See `.eval-gate.yml` for threshold configuration and `eval/dataset.json` for the test dataset.
 
 ### Running benchmarks locally
 
-The benchmark requires API keys for all three providers. Add them to the same `.env` (unprefixed — they are read by `mcp-llm-eval`, not the server):
+The benchmark requires API keys for both providers. Add them to the same `.env` (unprefixed — they are read by `mcp-llm-eval`, not the server):
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
 OPENAI_API_KEY=sk-...
-GOOGLE_API_KEY=AIza...
 ```
 
 Then run:
 
 ```bash
-make benchmark        # Run eval against all 8 models
+make benchmark        # Run eval against all 4 models
 make benchmark-copy   # Copy results to llm-benchmarks repo
 ```
 
