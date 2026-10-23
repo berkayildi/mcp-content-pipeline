@@ -25,7 +25,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install eval tooling
-        run: pip install mcp-llm-eval anthropic openai google-genai
+        run: pip install mcp-llm-eval "mcp<2" anthropic openai google-genai
 
       - name: Run evaluation
         run: mcp-llm-eval run --config .eval-gate.yml --dataset eval/dataset.json --output-dir eval/results
