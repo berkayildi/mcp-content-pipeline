@@ -143,3 +143,14 @@ Estimated monthly costs for two usage patterns:
 | X Premium              | ~$8/mo      | X feed reading via API (~$0.60–4/mo)                       |
 | YouTube Premium        | ~$14/mo     | Transcript extraction from public captions (free)          |
 | **Total saved**        | **~$22/mo** | **Pipeline cost: ~$0.60–4/mo** (plus LLM API usage) |
+
+## Eval Gate
+
+PRs touching `services/`, `tools/`, `config.py`, `server.py`, `eval/`, `.eval-gate.yml` or `pyproject.toml` run `.github/workflows/eval-gate.yml`: [mcp-llm-eval](https://github.com/berkayildi/mcp-llm-eval) scores faithfulness/relevance of 4 Anthropic/OpenAI models against `eval/dataset.json` and blocks the PR below the thresholds in `.eval-gate.yml`. Needs `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` repo secrets.
+
+Run it locally (keys exported, unprefixed):
+
+```bash
+uvx --with "mcp<2" --with anthropic --with openai mcp-llm-eval run --config .eval-gate.yml --dataset eval/dataset.json --output-dir eval/results
+uvx --with "mcp<2" mcp-llm-eval check --results eval/results/latest_summary.json --config .eval-gate.yml
+```

@@ -1,0 +1,27 @@
+thresholds:
+  avg_faithfulness: 0.70
+  avg_relevance: 0.70
+  p95_ttft_ms: 20000  # gpt-5-mini reasons before its first token; latency is irrelevant for background summaries
+  max_cost_per_query: 0.05
+
+models:
+  - provider: anthropic
+    model: claude-haiku-5-5
+    input_cost_per_mtok: 0.10
+    output_cost_per_mtok: 0.50
+    max_tokens: 4096
+  - provider: anthropic
+    model: claude-sonnet-5-5
+    input_cost_per_mtok: 2.0
+    output_cost_per_mtok: 10.0
+    max_tokens: 4096
+  - provider: openai
+    model: gpt-4o-mini
+    input_cost_per_mtok: 0.15
+    output_cost_per_mtok: 0.60
+    max_tokens: 2048
+  - provider: openai
+    model: gpt-5-mini
+    input_cost_per_mtok: 0.25
+    output_cost_per_mtok: 2.0
+    max_tokens: 4096
