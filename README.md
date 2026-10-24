@@ -107,7 +107,7 @@ All prefixed with `MCP_CP_` and set in `.env` — see `.env.example` for a ready
 
 | Variable            | Required | Description                               |
 | -------------------- | -------- | -------------------------------------------- |
-| `GITHUB_TOKEN`       | Yes      | Personal access token                        |
+| `GITHUB_TOKEN`       | Yes      | Fine-grained token: target repo only, Contents read/write |
 | `GITHUB_REPO`        | Yes      | Target repo, `owner/repo` format             |
 | `GITHUB_BRANCH`      | No       | Default: `main`                              |
 | `GITHUB_OUTPUT_DIR`  | No       | Default: `content/youtube`                   |
