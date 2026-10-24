@@ -12,14 +12,13 @@
 
 ### Features
 
-* provider-agnostic LLM driver (anthropic/openai/google) ([6ebd7b9](https://github.com/berkayildi/mcp-content-pipeline/commit/6ebd7b9a75d42f0a316efc6aed362b9523e1403a))
+* provider-agnostic LLM driver (anthropic/openai) ([6ebd7b9](https://github.com/berkayildi/mcp-content-pipeline/commit/6ebd7b9a75d42f0a316efc6aed362b9523e1403a))
 
 
 ### Bug Fixes
 
 * address review findings in sync and caption parsing ([cf4e4e2](https://github.com/berkayildi/mcp-content-pipeline/commit/cf4e4e239c9535cd8d60f3cc2565fa68fcabff5c))
 * load .env from cwd or MCP_CP_ENV_FILE instead of a hardcoded path ([ee94caa](https://github.com/berkayildi/mcp-content-pipeline/commit/ee94caa779be1dc9d8f6478bed95a31885158aa8))
-* **server:** hardcode .env path for uvx invocation from Claude Desktop ([7093cd7](https://github.com/berkayildi/mcp-content-pipeline/commit/7093cd71c282b49fc187c84a6cd6849f2491b50c))
 * **sync:** one commit per sync, skip untouched indexes and no-op syncs ([24074da](https://github.com/berkayildi/mcp-content-pipeline/commit/24074dae8beec097de28b04fdb06473028cab9f2))
 
 
@@ -32,7 +31,7 @@
 ### Code Refactoring
 
 * drop Supadata and batch_analyse, English-only TL;DR format ([1cdf8bf](https://github.com/berkayildi/mcp-content-pipeline/commit/1cdf8bf9abae56d0ba07e3a9800ca99d65a4d876))
-* scope to YouTube, X and GitHub; drop image gen, Google and eval ([8681ff3](https://github.com/berkayildi/mcp-content-pipeline/commit/8681ff3d60d4d64887f0dbfffaddf20f5b1dce34))
+* scope to YouTube, X and GitHub; drop image generation and Google ([8681ff3](https://github.com/berkayildi/mcp-content-pipeline/commit/8681ff3d60d4d64887f0dbfffaddf20f5b1dce34))
 * X digest uses TL;DR + key points; drop list_channel_videos ([6d3b44b](https://github.com/berkayildi/mcp-content-pipeline/commit/6d3b44bc27e03801f93adfd822aff4a3cf44b882))
 
 ## [0.14.1](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.14.0...v0.14.1) (2026-04-29)
