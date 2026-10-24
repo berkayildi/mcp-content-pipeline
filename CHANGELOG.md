@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.1](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.15.0...v0.15.1) (2026-10-24)
+
+
+### Documentation
+
+* fix stale 0.15.0 changelog wording and token guidance ([8a1a5d1](https://github.com/berkayildi/mcp-content-pipeline/commit/8a1a5d1b349312ce396b3dbc3e272137545bda1c))
+* note fine-grained GitHub token scope; required keys are per tool ([67967d0](https://github.com/berkayildi/mcp-content-pipeline/commit/67967d0c0078efb1b7eb25943a68759c67819431))
+
 ## [0.15.0](https://github.com/berkayildi/mcp-content-pipeline/compare/v0.14.1...v0.15.0) (2026-10-23)
 
 
